@@ -1,0 +1,35 @@
+{
+  "compilerOptions": {
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "target": "ES2023",
+    "paths": {
+      "@/*": ["./src/*"]
+    },
+
+    /* --- PHẦN KỶ LUẬT: CHẶN ANY, DÙNG UNKNOWN --- */
+    "noImplicitAny": true,              // BẮT BUỘC: Không cho phép bỏ trống kiểu dữ liệu (ép dùng unknown/interface)
+    "useUnknownInCatchVariables": true, // BẮT BUỘC: Biến error trong catch phải là 'unknown'
+    
+    /* --- PHẦN THOÁNG: GIẢM BỚT LỖI VẶT --- */
+    "strict": false,                    // Tắt kiểm tra tổng thể quá gắt gao
+    "strictNullChecks": false,          // KHÔNG BẮT BẺ: 'Object is possibly null' (Code sẽ nhanh hơn rất nhiều)
+    "strictBindCallApply": false,       // Thoáng khi dùng các hàm call/apply
+    "strictPropertyInitialization": false, // Không bắt bẻ việc phải gán giá trị ngay trong Constructor (Rất tiện cho NestJS)
+    
+    /* --- CẤU HÌNH NESTJS & HỆ THỐNG --- */
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "declaration": true,
+    "sourceMap": true,
+    "outDir": "./dist",
+    "skipLibCheck": true,               // Bỏ qua lỗi từ node_modules
+    "forceConsistentCasingInFileNames": true,
+    "incremental": true,
+       "types": ["node", "jest"],
+
+   },
+
+}
