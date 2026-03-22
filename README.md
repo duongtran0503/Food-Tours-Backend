@@ -27,7 +27,7 @@
 
 ## setup file .ENV
 ```js
-PORT=3000
+PORT=8080
 DATABASE_URL=mongodb+srv://duonght2004itsgu:D123123@bibi0.dfywgav.mongodb.net/?appName=bibi0
 JWT_SECRET=xuoDKj98ZOBQKB8jEL2pT4K9jpTa8os
 ```
