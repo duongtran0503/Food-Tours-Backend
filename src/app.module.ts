@@ -1,4 +1,7 @@
 import { AuthModule } from '@/modules/auth/auth.module';
+import { CategoriesModule } from '@/modules/Categories/category.module';
+import { FoodModule } from '@/modules/Foods/food.module';
+import { RestaurantModule } from '@/modules/Restaurants/restaurant.module';
 import { UploadModule } from '@/modules/upload/upload.module';
 import { UsersModule } from '@/modules/users/user.module';
 import { Logger, Module } from '@nestjs/common';
@@ -10,6 +13,9 @@ import { MongooseModule } from '@nestjs/mongoose';
     UsersModule,
     UploadModule,
     AuthModule,
+    CategoriesModule,
+    FoodModule,
+    RestaurantModule,
     ConfigModule.forRoot({
       isGlobal: true,
     }),

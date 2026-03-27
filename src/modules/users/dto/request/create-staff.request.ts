@@ -1,0 +1,20 @@
+import { ApiProperty } from '@nestjs/swagger';
+import { IsEmail, IsNotEmpty, IsString, MinLength } from 'class-validator';
+
+export class CreateStaffRequest {
+  @ApiProperty({ example: 'staff_thanh@example.com', description: 'Email của nhân viên' })
+  @IsEmail({}, { message: 'Email không đúng định dạng' })
+  @IsNotEmpty({ message: 'Email không được để trống' })
+  email: string;
+
+  @ApiProperty({ example: 'Lê Văn Thanh', description: 'Họ và tên nhân viên' })
+  @IsString()
+  @IsNotEmpty({ message: 'Họ và tên không được để trống' })
+  fullName: string;
+
+  @ApiProperty({ example: 'password123', description: 'Mật khẩu khởi tạo tối thiểu 8 ký tự' })
+  @IsString()
+  @MinLength(2, { message: 'Mật khẩu phải chứa tối thiểu 2 ký tự' }) 
+  @IsNotEmpty({ message: 'Mật khẩu không được để trống' })
+  password: string;
+}

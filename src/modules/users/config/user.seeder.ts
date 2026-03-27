@@ -3,7 +3,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Seeder } from 'nestjs-seeder';
 import * as bcrypt from 'bcrypt';
-import { User, UserDocument } from '@/schemas/user.schema';
+import { User, UserDocument, UserRoles, UserStatus } from '@/schemas/user.schema';
 import { AppConfig } from '@/config/app.config';
 
 @Injectable()
@@ -23,12 +23,13 @@ export class UserSeeder implements Seeder {
     const salt = await bcrypt.genSalt(AppConfig.SECURITY.SALT_ROUNDS);
     const hashedPassword = await bcrypt.hash('123123', salt); 
 
-    const adminUser = {
+    const adminUser:User = {
       email: 'admin@gmail.com',
-      password: hashedPassword,
+      password_hash: hashedPassword,
       fullName: 'Quản trị viên Hệ thống',
-      role: 'ADMIN', 
-      isActive: true,
+      role: UserRoles.ADMIN, 
+        status:UserStatus.ACTIVE,
+        
     };
 
     const existingAdmin = await this.userModel.findOne({ email: adminUser.email });

@@ -12,7 +12,7 @@ export class UserRepository extends BaseRepository<UserDocument> {
  async findOneWithPassword(filter: QueryFilter<UserDocument>): Promise<UserDocument | null> {
     return this.userModel
       .findOne(filter)
-      .select('+password') 
+      .select('+password_hash') 
       .exec();
  }
 }

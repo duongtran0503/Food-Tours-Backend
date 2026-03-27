@@ -35,6 +35,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
       switch (status) {
         case HttpStatus.UNAUTHORIZED:
           code = AppConfig.CODES.UNAUTHORIZED;
+          message = "Vui lòng đăng nhập để thực hiện hành dộng này"
           break;
         case HttpStatus.FORBIDDEN:
           code = AppConfig.CODES.FORBIDDEN;
