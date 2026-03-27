@@ -1,3 +1,4 @@
+import { HelloController } from '@/hello.world.controller';
 import { AuthModule } from '@/modules/auth/auth.module';
 import { CategoriesModule } from '@/modules/Categories/category.module';
 import { FoodModule } from '@/modules/Foods/food.module';
@@ -46,7 +47,7 @@ import { MongooseModule } from '@nestjs/mongoose';
       inject: [ConfigService],
     })
   ],
-  controllers: [],
+  controllers: [HelloController],
   providers: [],
 })
 export class AppModule {}

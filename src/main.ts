@@ -9,6 +9,17 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const prefix = 'api/v1';
   const reflector = app.get(Reflector);
+
+ app.enableCors({
+    origin: [
+      'http://localhost:3000',
+      'http://localhost:3001', 
+   
+    ],
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+    credentials: true,
+    allowedHeaders: 'Content-Type, Authorization, Accept',
+  });
   app.setGlobalPrefix(prefix);
   app.useGlobalInterceptors(new TransformInterceptor(reflector))
   app.useGlobalFilters(new HttpExceptionFilter())
