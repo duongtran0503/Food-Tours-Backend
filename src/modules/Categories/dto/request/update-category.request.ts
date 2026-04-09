@@ -1,11 +1,18 @@
+import { MultiLanguage } from '@/schemas/MultiLanguage';
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsOptional, IsString, IsBoolean, IsUrl } from 'class-validator';
+import { Type } from 'class-transformer';
+import { IsOptional, IsString, IsBoolean, IsUrl, IsObject, ValidateNested } from 'class-validator';
 
 export class UpdateCategoryRequest {
-  @ApiPropertyOptional({ example: 'Món nước đặc sản', description: 'Tên danh mục cần sửa' })
+  @ApiPropertyOptional({
+    example: { vi: 'Món nước đặc sản' },
+    description: 'Tên danh mục cần sửa'
+  })
   @IsOptional()
-  @IsString()
-  name?: string; 
+  @IsObject()
+  @ValidateNested()
+  @Type(() => MultiLanguage)
+  name?: MultiLanguage;
 
   @ApiPropertyOptional({ example: 'mon-nuoc-dac-san', description: 'Slug cần sửa' })
   @IsOptional()

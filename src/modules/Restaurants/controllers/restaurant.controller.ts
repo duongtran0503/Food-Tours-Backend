@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Get, Query, Param, Patch, Delete } from '@nestjs/common';
+import { Controller, Post, Body, Get, Query, Param, Patch, Delete, Headers } from '@nestjs/common';
 import { UserRoles } from '@/schemas/user.schema';
 import { Roles } from '@/common/decorator/roles.decorator';
 import { RestaurantService } from '@/modules/Restaurants/services/restaurant.service';
@@ -10,12 +10,13 @@ import { RestaurantDetailResponse } from '@/modules/Restaurants/dto/response/res
 import { UpdateRestaurantRequest } from '@/modules/Restaurants/dto/request/update-restaurant.request';
 import { AddFoodsToRestaurantRequest } from '@/modules/Restaurants/dto/request/add-foods-restaurant.request';
 import { RemoveFoodsFromRestaurantRequest } from '@/modules/Restaurants/dto/request/remove-foods-restaurant.request';
-import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiHeader, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 
 @ApiTags('Restaurants')
 @Controller('/restaurants')
+@ApiHeader({ name: 'lang', description: 'Ngôn ngữ hiển thị (vi, en, jp, zh, ru)', required: false })
 export class RestaurantController {
-  constructor(private readonly restaurantService: RestaurantService) {}
+  constructor(private readonly restaurantService: RestaurantService) { }
 
   @Post()
   @Roles(UserRoles.ADMIN)
@@ -29,8 +30,8 @@ export class RestaurantController {
   @Public()
   @Get()
   @ApiOperation({ summary: 'Xem danh sách quán ăn phân trang (Công khai)' })
-  @ApiResponse({ 
-    status: 200, 
+  @ApiResponse({
+    status: 200,
     description: 'Thành công',
     schema: {
       properties: {
@@ -48,8 +49,11 @@ export class RestaurantController {
       }
     }
   })
-  getPublicRestaurants(@Query() query: GetRestaurantsQueryRequest) {
-    return this.restaurantService.findAllPublicRestaurants(query);
+  getPublicRestaurants(
+    @Query() query: GetRestaurantsQueryRequest,
+    @Headers('lang') lang: string = 'vi' // 👈 Nhận lang từ Header
+  ) {
+    return this.restaurantService.findAllPublicRestaurants(query, lang);
   }
 
   @Public()
@@ -57,20 +61,24 @@ export class RestaurantController {
   @ApiOperation({ summary: 'Xem chi tiết một quán ăn (Populate các món ăn)' })
   @ApiResponse({ status: 200, description: 'Thành công', type: RestaurantDetailResponse })
   @ApiResponse({ status: 404, description: 'Quán ăn không tồn tại' })
-  async getRestaurantDetail(@Param('id') id: string): Promise<RestaurantDetailResponse> {
-    return this.restaurantService.findRestaurantById(id);
+  async getRestaurantDetail(
+    @Param('id') id: string,
+    @Headers('lang') lang: string = 'vi' // 👈 Nhận lang từ Header
+  ): Promise<RestaurantDetailResponse> {
+    return this.restaurantService.findRestaurantById(id, lang);
   }
 
   @Patch(':id')
-  @Roles(UserRoles.ADMIN) 
+  @Roles(UserRoles.ADMIN)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Cập nhật thông tin quán ăn (Admin)' })
   @ApiResponse({ status: 200, description: 'Cập nhật thành công', type: RestaurantResponse })
   async updateRestaurant(
     @Param('id') id: string,
     @Body() data: UpdateRestaurantRequest,
+    @Headers('lang') lang: string = 'vi' // 👈 Nhận lang từ Header
   ): Promise<RestaurantResponse> {
-    return this.restaurantService.updateRestaurant(id, data);
+    return this.restaurantService.updateRestaurant(id, data, lang);
   }
 
   @Delete(':id')
@@ -87,15 +95,16 @@ export class RestaurantController {
   }
 
   @Post(':restaurantId/foods')
-  @Roles(UserRoles.ADMIN) 
+  @Roles(UserRoles.ADMIN)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Thêm hàng loạt món ăn liên kết vào quán ăn (Admin)' })
   @ApiResponse({ status: 201, description: 'Thêm thành công', type: RestaurantResponse })
   async addFoodsToRestaurant(
     @Param('restaurantId') restaurantId: string,
     @Body() data: AddFoodsToRestaurantRequest,
+    @Headers('lang') lang: string = 'vi'
   ): Promise<RestaurantResponse> {
-    return this.restaurantService.addFoodsToRestaurant(restaurantId, data);
+    return this.restaurantService.addFoodsToRestaurant(restaurantId, data, lang);
   }
 
   @Delete(':restaurantId/foods')
@@ -106,7 +115,8 @@ export class RestaurantController {
   async removeFoodsFromRestaurant(
     @Param('restaurantId') restaurantId: string,
     @Body() data: RemoveFoodsFromRestaurantRequest,
+    @Headers('lang') lang: string = 'vi'
   ): Promise<RestaurantResponse> {
-    return this.restaurantService.removeFoodsFromRestaurant(restaurantId, data);
+    return this.restaurantService.removeFoodsFromRestaurant(restaurantId, data, lang);
   }
 }

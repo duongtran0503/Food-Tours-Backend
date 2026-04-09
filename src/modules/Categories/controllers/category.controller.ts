@@ -6,16 +6,16 @@ import { UpdateCategoryRequest } from "@/modules/Categories/dto/request/update-c
 import { CategoryResponse } from "@/modules/Categories/dto/response/category-response";
 import { CategoriesService } from "@/modules/Categories/services/category.service";
 import { UserRoles } from "@/schemas/user.schema";
-import { Body, Controller, Delete, Get, Param, Patch, Post, Query } from "@nestjs/common";
-import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from "@nestjs/swagger";
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query, Headers } from "@nestjs/common";
+import { ApiBearerAuth, ApiHeader, ApiOperation, ApiResponse, ApiTags } from "@nestjs/swagger";
 
 @ApiTags('Categories') // Gom nhóm module Categories trên UI
 @Controller("categories")
 export class CategoryController {
-  constructor(private readonly categoriesService: CategoriesService) {}
+  constructor(private readonly categoriesService: CategoriesService) { }
 
   @Post()
-  @Roles(UserRoles.ADMIN) 
+  @Roles(UserRoles.ADMIN)
   @ApiBearerAuth() // Đánh dấu API cần token Admin
   @ApiOperation({ summary: 'Tạo danh mục món ăn mới (Admin)' })
   @ApiResponse({ status: 201, description: 'Tạo thành công', type: CategoryResponse })
@@ -23,12 +23,12 @@ export class CategoryController {
   create(@Body() data: CreateCategoryRequest) {
     return this.categoriesService.createCategory(data);
   }
-  
+
   @Public()
   @Get()
   @ApiOperation({ summary: 'Xem danh sách danh mục phân trang, tìm kiếm công khai' })
-  @ApiResponse({ 
-    status: 200, 
+  @ApiResponse({
+    status: 200,
     description: 'Thành công',
     schema: {
       properties: {
@@ -46,12 +46,23 @@ export class CategoryController {
       }
     }
   })
-  getCategories(@Query() query: GetCategoriesQueryRequest) {
-    return this.categoriesService.findAllCategories(query);
+  @ApiHeader({
+    name: 'lang',
+    description: 'Ngôn ngữ (vi, en, jp, zh, ru)',
+    required: false,
+    schema: { default: 'vi', enum: ['vi', 'en', 'jp', 'zh', 'ru'] }
+  })
+  getCategories(
+    @Query() query: GetCategoriesQueryRequest,
+    @Headers('lang') lang: string = 'vi'
+  ) {
+    return this.categoriesService.findAllCategories(query, lang);
   }
 
+  // Các hàm create, update cũng thêm @Headers('lang') tương tự để trả về Response đúng tiếng
+
   @Patch(':id')
-  @Roles(UserRoles.ADMIN) 
+  @Roles(UserRoles.ADMIN)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Chỉnh sửa danh mục món ăn (Admin)' })
   @ApiResponse({ status: 200, description: 'Cập nhật thành công', type: CategoryResponse })
@@ -64,11 +75,11 @@ export class CategoryController {
   }
 
   @Delete(':id')
-  @Roles(UserRoles.ADMIN) 
+  @Roles(UserRoles.ADMIN)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Xóa danh mục (Admin)' })
-  @ApiResponse({ 
-    status: 200, 
+  @ApiResponse({
+    status: 200,
     description: 'Xóa thành công',
     schema: { properties: { deleteItemId: { type: 'string', example: '65fc34e45d4f3b0012abcd12' } } }
   })

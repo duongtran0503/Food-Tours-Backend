@@ -14,47 +14,52 @@ import { QueryFilter } from 'mongoose';
 
 @Injectable()
 export class RestaurantService {
-  constructor(private readonly restaurantRepository: RestaurantRepository) {}
+  constructor(private readonly restaurantRepository: RestaurantRepository) { }
 
   async createRestaurant(data: CreateRestaurantRequest): Promise<RestaurantResponse> {
     const existingRestaurant = await this.restaurantRepository.findOne({
-           phoneNumber:data.phoneNumber     
+      phoneNumber: data.phoneNumber,
     });
 
     if (existingRestaurant) {
       throw new AppException(RestaurantErrorCode.PHONE_RESTAURANT_EXISTED);
     }
 
+    // FIX: data.name, address... lúc này đã là Object MultiLanguage từ DTO mới
     const newRestaurant = await this.restaurantRepository.create({
       name: data.name,
       address: data.address,
       location: data.location,
       phoneNumber: data.phoneNumber,
       openingHours: data.openingHours,
+      description: data.description,
       images: data.images || [],
-      foods: data.foods ? data.foods.map(id => id as any) : [],
+      foods: data.foods ? data.foods.map((id) => id as any) : [],
     });
 
     if (!newRestaurant) {
       throw new AppException(RestaurantErrorCode.RESTAURANT_CREATE_FAILED);
     }
 
-    return new RestaurantResponse(newRestaurant);
+    return new RestaurantResponse(newRestaurant, 'vi');
   }
 
-
-  async findAllPublicRestaurants(query: GetRestaurantsQueryRequest) {
+  async findAllPublicRestaurants(query: GetRestaurantsQueryRequest, lang: string = 'vi') {
     const { page = 1, limit = 10, search, foodId } = query;
     const skip = (page - 1) * limit;
 
-    const filter: QueryFilter<RestaurantDocument> = {};
+    const filter: any = {};
 
+    // FIX: Search vào các trường con của MultiLanguage
     if (search) {
-      filter.name = { $regex: search, $options: 'i' };
+      filter.$or = [
+        { 'name.vi': { $regex: search, $options: 'i' } },
+        { 'name.en': { $regex: search, $options: 'i' } },
+      ];
     }
 
     if (foodId) {
-      filter.foods = foodId as any; 
+      filter.foods = foodId as any;
     }
 
     const restaurantModel = this.restaurantRepository.getModel();
@@ -62,7 +67,7 @@ export class RestaurantService {
     const [restaurants, totalItems] = await Promise.all([
       restaurantModel
         .find(filter)
-        .sort({ name: 1 })
+        .sort({ 'name.vi': 1 }) // Sắp xếp theo tên tiếng Việt
         .skip(skip)
         .limit(limit)
         .lean()
@@ -70,7 +75,7 @@ export class RestaurantService {
       restaurantModel.countDocuments(filter).exec(),
     ]);
 
-    const dataFormatted = restaurants.map((res) => new RestaurantResponse(res as any));
+    const dataFormatted = restaurants.map((res) => new RestaurantResponse(res as any, lang));
 
     return {
       items: dataFormatted,
@@ -84,7 +89,7 @@ export class RestaurantService {
     };
   }
 
-  async findRestaurantById(id: string): Promise<RestaurantDetailResponse> {
+  async findRestaurantById(id: string, lang: string = 'vi'): Promise<RestaurantDetailResponse> {
     const restaurantModel = this.restaurantRepository.getModel();
 
     const restaurant = await restaurantModel
@@ -97,23 +102,25 @@ export class RestaurantService {
       throw new AppException(RestaurantErrorCode.RESTAURANT_NOT_FOUND);
     }
 
-    return new RestaurantDetailResponse(restaurant as any);
+    return new RestaurantDetailResponse(restaurant as any, lang);
   }
 
-
-  async updateRestaurant(id: string, data: UpdateRestaurantRequest): Promise<RestaurantResponse> {
+  async updateRestaurant(id: string, data: UpdateRestaurantRequest, lang: string = 'vi'): Promise<RestaurantResponse> {
     const restaurant = await this.restaurantRepository.findById(id);
     if (!restaurant) {
       throw new AppException(RestaurantErrorCode.RESTAURANT_NOT_FOUND);
     }
 
     const updateData: any = {};
-    if (data.name) updateData.name = data.name;
-    if (data.address) updateData.address = data.address;
+
+    // FIX: Merge dữ liệu cũ và mới để tránh mất các ngôn ngữ không truyền lên
+    if (data.name) updateData.name = { ...restaurant.name, ...data.name };
+    if (data.address) updateData.address = { ...restaurant.address, ...data.address };
+    if (data.openingHours) updateData.openingHours = { ...restaurant.openingHours, ...data.openingHours };
+    if (data.description) updateData.description = { ...restaurant.description, ...data.description };
     if (data.phoneNumber) updateData.phoneNumber = data.phoneNumber;
-    if (data.openingHours) updateData.openingHours = data.openingHours;
     if (data.images) updateData.images = data.images;
-    if (data.foods) updateData.foods = data.foods.map(id => id as any);
+    if (data.foods) updateData.foods = data.foods.map((id) => id as any);
 
     if (data.location) {
       updateData.location = {
@@ -127,7 +134,7 @@ export class RestaurantService {
       throw new AppException(RestaurantErrorCode.RESTAURANT_UPDATE_FAILED);
     }
 
-    return new RestaurantResponse(updatedRestaurant);
+    return new RestaurantResponse(updatedRestaurant, lang);
   }
 
   async deleteRestaurant(id: string): Promise<void> {
@@ -143,10 +150,10 @@ export class RestaurantService {
   }
 
   async addFoodsToRestaurant(
-    restaurantId: string, 
-    data: AddFoodsToRestaurantRequest
+    restaurantId: string,
+    data: AddFoodsToRestaurantRequest,
+    lang: string = 'vi'
   ): Promise<RestaurantResponse> {
-    
     const restaurant = await this.restaurantRepository.findById(restaurantId);
     if (!restaurant) {
       throw new AppException(RestaurantErrorCode.RESTAURANT_NOT_FOUND);
@@ -154,30 +161,31 @@ export class RestaurantService {
 
     const restaurantModel = this.restaurantRepository.getModel();
 
-      
-    const updatedRestaurant = await restaurantModel.findByIdAndUpdate(
-      restaurantId,
-      { 
-        $addToSet: { 
-          foods: { $each: data.foodIds } 
-        } 
-      },
-      { returnDocument: 'after' } 
-    ).lean().exec();
+    const updatedRestaurant = await restaurantModel
+      .findByIdAndUpdate(
+        restaurantId,
+        {
+          $addToSet: {
+            foods: { $each: data.foodIds },
+          },
+        },
+        { returnDocument: 'after' },
+      )
+      .lean()
+      .exec();
 
     if (!updatedRestaurant) {
       throw new AppException(RestaurantErrorCode.RESTAURANT_UPDATE_FAILED);
     }
 
-    return new RestaurantResponse(updatedRestaurant as any);
+    return new RestaurantResponse(updatedRestaurant as any, lang);
   }
 
-
   async removeFoodsFromRestaurant(
-    restaurantId: string, 
-    data: RemoveFoodsFromRestaurantRequest
+    restaurantId: string,
+    data: RemoveFoodsFromRestaurantRequest,
+    lang: string = 'vi'
   ): Promise<RestaurantResponse> {
-    
     const restaurant = await this.restaurantRepository.findById(restaurantId);
     if (!restaurant) {
       throw new AppException(RestaurantErrorCode.RESTAURANT_NOT_FOUND);
@@ -185,20 +193,23 @@ export class RestaurantService {
 
     const restaurantModel = this.restaurantRepository.getModel();
 
-    const updatedRestaurant = await restaurantModel.findByIdAndUpdate(
-      restaurantId,
-      { 
-        $pullAll: { 
-          foods: data.foodIds as any 
-        } 
-      },
-      { returnDocument: 'after' } 
-    ).lean().exec();
+    const updatedRestaurant = await restaurantModel
+      .findByIdAndUpdate(
+        restaurantId,
+        {
+          $pullAll: {
+            foods: data.foodIds as any,
+          },
+        },
+        { returnDocument: 'after' },
+      )
+      .lean()
+      .exec();
 
     if (!updatedRestaurant) {
       throw new AppException(RestaurantErrorCode.RESTAURANT_UPDATE_FAILED);
     }
 
-    return new RestaurantResponse(updatedRestaurant as any);
+    return new RestaurantResponse(updatedRestaurant as any, lang);
   }
 }

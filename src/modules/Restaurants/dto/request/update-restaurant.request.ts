@@ -1,18 +1,37 @@
-import { ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsOptional, IsString, IsArray, IsMongoId, IsObject, ValidateNested } from 'class-validator';
 import { Type } from 'class-transformer';
 import { UpdateLocationDto } from '@/modules/Restaurants/dto/request/location.dto';
+import { MultiLanguage } from '@/schemas/MultiLanguage';
 
 export class UpdateRestaurantRequest {
-  @ApiPropertyOptional({ example: 'Quán Cao lầu Thanh - CN2' })
-  @IsOptional()
-  @IsString()
-  name?: string;
+  @ApiProperty({ example: { vi: 'Quán Cao lầu Thanh', en: 'Thanh Cao Lau Restaurant' } })
+  @IsObject()
+  @ValidateNested()
+  @Type(() => MultiLanguage)
+  name: MultiLanguage;
 
-  @ApiPropertyOptional({ example: 'Hội An, Quảng Nam' })
+  @ApiProperty({ example: { vi: '26 Thái Phiên, Hội An', en: '26 Thai Phien, Hoi An' } })
+  @IsObject()
+  @ValidateNested()
+  @Type(() => MultiLanguage)
+  address: MultiLanguage;
+
+  @ApiPropertyOptional({ example: { vi: '07:00 - 22:00', en: '7 AM - 10 PM' } })
   @IsOptional()
-  @IsString()
-  address?: string;
+  @IsObject()
+  @ValidateNested()
+  @Type(() => MultiLanguage)
+  openingHours?: MultiLanguage;
+
+
+  @ApiPropertyOptional({
+    example: { vi: 'Bánh mì đặc sản với pate và bơ béo ngậy', en: 'Special banh mi with pate and butter' }
+  })
+  @IsObject()
+  @ValidateNested()
+  @Type(() => MultiLanguage)
+  description: MultiLanguage;
 
   @ApiPropertyOptional({ type: UpdateLocationDto })
   @IsOptional()
@@ -26,10 +45,7 @@ export class UpdateRestaurantRequest {
   @IsString()
   phoneNumber?: string;
 
-  @ApiPropertyOptional({ example: '08:00 - 21:00' })
-  @IsOptional()
-  @IsString()
-  openingHours?: string;
+
 
   @ApiPropertyOptional({ example: ['https://new-image.png'] })
   @IsOptional()

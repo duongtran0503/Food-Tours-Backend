@@ -1,19 +1,20 @@
+import { MultiLanguage } from '@/schemas/MultiLanguage';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument } from 'mongoose';
 
 @Schema({ timestamps: true, collection: 'food_categories' })
 export class FoodCategory {
-  @Prop({ required: true, trim: true }) 
-  categoryName: string;
+  @Prop({ type: MultiLanguage, required: true })
+  categoryName: MultiLanguage;
 
-   @Prop({ required: true,unique:true, trim: true }) 
+  @Prop({ required: true, unique: true, trim: true })
   slug: string;
 
-  @Prop() 
+  @Prop()
   iconUrl: string;
 
-  @Prop({default:true})
-  isActive:boolean
+  @Prop({ default: true })
+  isActive: boolean
 
 }
 

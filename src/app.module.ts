@@ -21,8 +21,8 @@ import { MongooseModule } from '@nestjs/mongoose';
       isGlobal: true,
     }),
     MongooseModule.forRootAsync({
-      imports:[ConfigModule],
-      useFactory: (configService: ConfigService) =>{
+      imports: [ConfigModule],
+      useFactory: (configService: ConfigService) => {
         const uri = configService.get<string>('DATABASE_URL');
         if (!uri) {
           throw new Error('DATABASE_URL is not defined in .env');
@@ -30,24 +30,24 @@ import { MongooseModule } from '@nestjs/mongoose';
         return {
           uri: uri,
           connectionFactory(connection) {
-             if (connection.readyState === 1) {
-            Logger.log('------------------- MongoDB Atlas connected successfully!--------------------', 'Database');
-          }
-          connection.on('connected', () => {
-            Logger.log('------------------- MongoDB Atlas connected successfully!--------------------', 'Database');
-          });
-          connection.on('error', (error:unknown) => {
-            Logger.error(` MongoDB connection error: ${error}`, 'Database');
-          });
-          return connection;
+            if (connection.readyState === 1) {
+              Logger.log('------------------- MongoDB Atlas connected successfully!--------------------', 'Database');
+            }
+            connection.on('connected', () => {
+              Logger.log('------------------- MongoDB Atlas connected successfully!--------------------', 'Database');
+            });
+            connection.on('error', (error: unknown) => {
+              Logger.error(` MongoDB connection error: ${error}`, 'Database');
+            });
+            return connection;
           }
         };
       },
-      
+
       inject: [ConfigService],
     })
   ],
   controllers: [HelloController],
   providers: [],
 })
-export class AppModule {}
+export class AppModule { }

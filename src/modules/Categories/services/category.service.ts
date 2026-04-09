@@ -5,52 +5,44 @@ import { GetCategoriesQueryRequest } from '@/modules/Categories/dto/request/get-
 import { UpdateCategoryRequest } from '@/modules/Categories/dto/request/update-category.request';
 import { CategoryResponse } from '@/modules/Categories/dto/response/category-response';
 import { CategoryRepository } from '@/modules/Categories/repositories/category-repository';
-import { FoodCategory, FoodCategoryDocument } from '@/schemas/food-categories.schema';
 import { Injectable } from '@nestjs/common';
-import { QueryFilter } from 'mongoose';
 
 @Injectable()
 export class CategoriesService {
-  constructor(private readonly categoriesRepository: CategoryRepository) {}
-
+  constructor(private readonly categoriesRepository: CategoryRepository) { }
   async createCategory(data: CreateCategoryRequest) {
-    const existingCategory = await this.categoriesRepository.findOne({ name: data.slug });
-    
-    if (existingCategory) {
-      throw new AppException(CategoryErrorCode.CATEGORY_EXISTED);
-    }
-   const newCategory = await this.categoriesRepository.create({
-        categoryName:data.name,
-        iconUrl:data.icon,
-        slug:data.slug,
-        
+    const existingCategory = await this.categoriesRepository.findOne({ slug: data.slug });
+    if (existingCategory) throw new AppException(CategoryErrorCode.CATEGORY_EXISTED);
+
+    const newCategory = await this.categoriesRepository.create({
+      categoryName: data.name, // Lưu Object {vi, en...}
+      iconUrl: data.icon,
+      slug: data.slug,
     });
-    return new CategoryResponse(newCategory);
+    return new CategoryResponse(newCategory, 'vi');
   }
 
-
-  async findAllCategories(query: GetCategoriesQueryRequest) {
+  async findAllCategories(query: GetCategoriesQueryRequest, lang: string) {
     const { page = 1, limit = 10, search, isActive } = query;
     const skip = (page - 1) * limit;
+    const filter: any = {};
 
-    const filter: QueryFilter<FoodCategoryDocument> = {};
-
-    if (isActive !== undefined) {
-      filter.isActive = isActive;
-    }
+    if (isActive !== undefined) filter.isActive = isActive;
 
     if (search) {
-      filter.categoryName = { $regex: search, $options: 'i' };
+      filter.$or = [
+        { 'categoryName.vi': { $regex: search, $options: 'i' } },
+        { 'categoryName.en': { $regex: search, $options: 'i' } },
+      ];
     }
 
     const categoryModel = this.categoriesRepository.getModel();
-
     const [categories, totalItems] = await Promise.all([
-      categoryModel.find(filter).sort({ categoryName: 1 }).skip(skip).limit(limit).lean().exec(),
+      categoryModel.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit).lean().exec(),
       categoryModel.countDocuments(filter).exec(),
     ]);
 
-    const dataFormatted = categories.map((cat) => new CategoryResponse(cat));
+    const dataFormatted = categories.map((cat) => new CategoryResponse(cat, lang));
 
     return {
       items: dataFormatted,
@@ -58,42 +50,24 @@ export class CategoriesService {
         totalItems,
         itemCount: dataFormatted.length,
         itemsPerPage: limit,
-        totalPages: Math.ceil(totalItems / limit) || 1, 
+        totalPages: Math.ceil(totalItems / limit) || 1,
         currentPage: page,
       },
     };
   }
 
-
-  async updateCategory(id: string, data: UpdateCategoryRequest): Promise<CategoryResponse> {
+  async updateCategory(id: string, data: UpdateCategoryRequest, lang: string = 'vi'): Promise<CategoryResponse> {
     const categoryToUpdate = await this.categoriesRepository.findById(id);
-    if (!categoryToUpdate) {
-      throw new AppException(CategoryErrorCode.CATEGORY_NOT_FOUND);
+    if (!categoryToUpdate) throw new AppException(CategoryErrorCode.CATEGORY_NOT_FOUND);
+
+    const updateData: any = { ...data };
+    if (data.name) {
+      updateData.categoryName = { ...categoryToUpdate.categoryName, ...data.name };
     }
-
-    if (data.slug) {
-      const existingWithSlug = await this.categoriesRepository.findOne({
-        slug: data.slug,
-        _id: { $ne: id }, 
-      });
-
-      if (existingWithSlug) {
-        throw new AppException(CategoryErrorCode.CATEGORY_EXISTED);
-      }
-    }
-
-    const updateData =categoryToUpdate;
-    if (data.name) updateData.categoryName = data.name;
-    if (data.slug) updateData.slug = data.slug;
     if (data.icon) updateData.iconUrl = data.icon;
-    if (data.isActive !== undefined) updateData.isActive = data.isActive;
 
     const updatedCategory = await this.categoriesRepository.update(id, updateData);
-    if (!updatedCategory) {
-      throw new AppException(CategoryErrorCode.CATEGORY_UPDATE_FAILED);
-    }
-
-    return new CategoryResponse(updatedCategory);
+    return new CategoryResponse(updatedCategory, lang);
   }
 
   async deleteCategory(id: string): Promise<void> {

@@ -1,11 +1,17 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsNotEmpty, IsString, IsOptional, IsUrl } from 'class-validator';
-
+import { IsNotEmpty, IsString, IsOptional, IsUrl, IsObject, ValidateNested } from 'class-validator';
+import { Type } from 'class-transformer';
+import { MultiLanguage } from '@/schemas/MultiLanguage';
 export class CreateCategoryRequest {
-  @ApiProperty({ example: 'Đặc sản Hội An', description: 'Tên danh mục món ăn' })
-  @IsString()
+  @ApiProperty({
+    example: { vi: 'Đặc sản Hội An', en: 'Hoi An Specialties' },
+    description: 'Tên danh mục món ăn (Đa ngôn ngữ)'
+  })
+  @IsObject()
+  @ValidateNested()
+  @Type(() => MultiLanguage)
   @IsNotEmpty({ message: 'Tên danh mục không được để trống' })
-  name: string;
+  name: MultiLanguage;
 
   @ApiProperty({ example: 'dac-san-hoi-an', description: 'Mã slug danh mục (Duy nhất)' })
   @IsString()

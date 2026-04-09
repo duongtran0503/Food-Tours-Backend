@@ -1,14 +1,21 @@
+import { MultiLanguage } from '@/schemas/MultiLanguage';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument, Types } from 'mongoose';
 
 
+
 @Schema({ timestamps: true, collection: 'restaurants' })
 export class Restaurant {
-  @Prop({ required: true, trim: true })
-  name: string; // Tên quán (Ví dụ: Quán Cao lầu Thanh, Phở Thìn...)
+  // 1. Tên quán đa ngôn ngữ
+  @Prop({ type: MultiLanguage, required: true })
+  name: MultiLanguage;
 
-  @Prop({ required: true })
-  address: string; // Địa chỉ quán ăn
+  // 2. Địa chỉ đa ngôn ngữ
+  @Prop({ type: MultiLanguage, required: true })
+  address: MultiLanguage;
+
+  @Prop({ type: MultiLanguage, required: true })
+  description: MultiLanguage;
 
   @Prop({
     type: {
@@ -17,22 +24,21 @@ export class Restaurant {
     },
     required: true,
   })
-  location: { lat: number; lng: number }; // GPS tọa độ quán ăn
+  location: { lat: number; lng: number };
 
-  @Prop({required:true,unique:true})
+  @Prop({ required: true, unique: true })
   phoneNumber: string;
 
-  @Prop()
-  openingHours: string; // Ví dụ: "07:00 - 22:00"
+  // 3. Giờ mở cửa đa ngôn ngữ (Đề phòng có các ghi chú như "Chủ nhật đóng cửa")
+  @Prop({ type: MultiLanguage, required: true })
+  openingHours: MultiLanguage;
 
   @Prop({ default: [] })
   images: string[];
 
-
-
   @Prop({ type: [{ type: Types.ObjectId, ref: 'Food' }], default: [] })
   foods: Types.ObjectId[];
 }
-export type RestaurantDocument = HydratedDocument<Restaurant>;
 
+export type RestaurantDocument = HydratedDocument<Restaurant>;
 export const RestaurantSchema = SchemaFactory.createForClass(Restaurant);

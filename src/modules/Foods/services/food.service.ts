@@ -12,7 +12,7 @@ import { QueryFilter } from 'mongoose';
 
 @Injectable()
 export class FoodService {
-  constructor(private readonly foodRepository: FoodRepository) {}
+  constructor(private readonly foodRepository: FoodRepository) { }
 
   async createFood(data: CreateFoodRequest): Promise<FoodResponse> {
     if (data.minPrice > data.maxPrice) {
@@ -20,7 +20,7 @@ export class FoodService {
     }
 
     const existingFood = await this.foodRepository.findOne({
-         slug:data.slug      
+      slug: data.slug
     });
 
     if (existingFood) {
@@ -29,23 +29,19 @@ export class FoodService {
 
     const newFood = await this.foodRepository.create({
       dishName: data.name,
-      slug:data.slug,
+      slug: data.slug,
       category: data.category as any,
       minPrice: data.minPrice,
+      description: data.description,
       maxPrice: data.maxPrice,
       images: data.images || [],
       status: FoodStatus.AVAILABLE,
     });
-
-    if (!newFood) {
-      throw new AppException(FoodErrorCode.FOOD_CREATE_FAILED);
-    }
-
-    return new FoodResponse(newFood);
+    return new FoodResponse(newFood, 'vi');
   }
 
 
-  async findAllPublicFoods(query: GetFoodsQueryRequest) {
+  async findAllPublicFoods(query: GetFoodsQueryRequest, lang: string = 'vi') {
     const { page = 1, limit = 10, search, categoryId: categoryId } = query;
     const skip = (page - 1) * limit;
 
@@ -58,47 +54,39 @@ export class FoodService {
     }
 
     if (search) {
-      filter.dishName = { $regex: search, $options: 'i' };
+      filter.$or = [
+        { 'dishName.vi': { $regex: search, $options: 'i' } },
+        { 'dishName.en': { $regex: search, $options: 'i' } }
+      ];
     }
 
-    const foodModel = this.foodRepository.getModel();
-
     const [foods, totalItems] = await Promise.all([
-      foodModel
+      this.foodRepository.getModel()
         .find(filter)
-        .sort({ dishName: 1 }) 
-        .skip(skip)
+        .sort({ 'dishName.vi': 1 })
+        .skip((page - 1) * limit)
         .limit(limit)
-        .lean()
-        .exec(),
-      foodModel.countDocuments(filter).exec(),
+        .lean().exec(),
+      this.foodRepository.getModel().countDocuments(filter).exec(),
     ]);
 
-    const dataFormatted = foods.map((food) => new FoodResponse(food as any));
-
     return {
-      items: dataFormatted,
-      meta: {
-        totalItems,
-        itemCount: dataFormatted.length,
-        itemsPerPage: limit,
-        totalPages: Math.ceil(totalItems / limit) || 1,
-        currentPage: page,
-      },
+      items: foods.map((food) => new FoodResponse(food, lang)),
+      meta: { totalItems, itemsPerPage: limit, currentPage: page, totalPages: Math.ceil(totalItems / limit) || 1 },
     };
   }
 
-  async findFoodById(id: string): Promise<FoodResponse> {
+  async findFoodById(id: string, lang: string = "vi"): Promise<FoodResponse> {
     const food = await this.foodRepository.findById(id);
 
     if (!food) {
       throw new AppException(FoodErrorCode.FOOD_NOT_FOUND);
     }
 
-    return new FoodResponse(food);
+    return new FoodResponse(food, lang);
   }
 
-  async updateFood(id: string, data: UpdateFoodRequest): Promise<FoodResponse> {
+  async updateFood(id: string, data: UpdateFoodRequest, lang: string = 'vi'): Promise<FoodResponse> {
     const food = await this.foodRepository.findById(id);
     if (!food) {
       throw new AppException(FoodErrorCode.FOOD_NOT_FOUND);
@@ -112,20 +100,25 @@ export class FoodService {
     }
 
     const updateData: any = {};
-    if (data.name) updateData.dishName = data.name;
+    if (data.name) {
+      updateData.dishName = { ...food.dishName, ...data.name };
+    }
+    if (data.description) {
+      updateData.description = { ...food.description, ...data.description };
+    }
     if (data.category) updateData.category = data.category as any;
     if (data.images) updateData.images = data.images;
     if (data.minPrice !== undefined) updateData.minPrice = data.minPrice;
     if (data.maxPrice !== undefined) updateData.maxPrice = data.maxPrice;
     if (data.status) updateData.status = data.status;
-    if(data.slug) updateData.slug = data.slug
+    if (data.slug) updateData.slug = data.slug
 
     const updatedFood = await this.foodRepository.update(id, updateData);
     if (!updatedFood) {
       throw new AppException(FoodErrorCode.FOOD_UPDATE_FAILED);
     }
 
-    return new FoodResponse(updatedFood);
+    return new FoodResponse(updatedFood, lang);
   }
 
   async deleteFood(id: string): Promise<void> {
@@ -140,7 +133,7 @@ export class FoodService {
     }
   }
 
-  async addCategoryToFood(foodId: string, categoryId: string): Promise<FoodResponse> {
+  async addCategoryToFood(foodId: string, categoryId: string, lang: string = 'vi'): Promise<FoodResponse> {
     const food = await this.foodRepository.findById(foodId);
     if (!food) {
       throw new AppException(FoodErrorCode.FOOD_NOT_FOUND);
@@ -150,26 +143,26 @@ export class FoodService {
 
     const updatedFood = await foodModel.findByIdAndUpdate(
       foodId,
-     { $set: { category: categoryId } }, 
-  { returnDocument: 'after' } 
+      { $set: { category: categoryId } },
+      { returnDocument: 'after' }
     ).lean().exec();
 
-    return new FoodResponse(updatedFood as any);
+    return new FoodResponse(updatedFood as any, lang);
   }
 
-  async removeCategoryFromFood(foodId: string): Promise<FoodResponse> {
+  async removeCategoryFromFood(foodId: string, lang: string = 'vi'): Promise<FoodResponse> {
     const food = await this.foodRepository.findById(foodId);
     if (!food) {
       throw new AppException(FoodErrorCode.FOOD_NOT_FOUND);
     }
 
     const foodModel = this.foodRepository.getModel();
-   const updatedFood = await foodModel.findByIdAndUpdate(
-  foodId,
-  { $set: { category: '' } }, 
-  { returnDocument: 'after' } 
-).lean().exec();
+    const updatedFood = await foodModel.findByIdAndUpdate(
+      foodId,
+      { $set: { category: '' } },
+      { returnDocument: 'after' }
+    ).lean().exec();
 
-    return new FoodResponse(updatedFood as any);
+    return new FoodResponse(updatedFood as any, lang);
   }
 }

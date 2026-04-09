@@ -1,12 +1,24 @@
-import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsOptional, IsString, IsNumber, IsArray, IsEnum, IsMongoId, Min } from 'class-validator';
+import { MultiLanguage } from '@/schemas/MultiLanguage';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { Type } from 'class-transformer';
+import { IsOptional, IsString, IsNumber, IsArray, IsEnum, IsMongoId, Min, ValidateNested, IsObject, IsNotEmpty } from 'class-validator';
 
 export class UpdateFoodRequest {
-  @ApiPropertyOptional({ example: 'Bánh Mì Gà', description: 'Tên món ăn mới' })
-  @IsOptional()
-  @IsString()
-  name?: string;
+  @ApiProperty({ example: { vi: 'Bánh Mì Hội An', en: 'Hoi An Banh Mi' } })
+  @IsObject()
+  @ValidateNested()
+  @Type(() => MultiLanguage)
+  @IsNotEmpty({ message: 'Tên món ăn không được để trống' })
+  name: MultiLanguage;
 
+
+  @ApiPropertyOptional({
+    example: { vi: 'Bánh mì đặc sản với pate và bơ béo ngậy', en: 'Special banh mi with pate and butter' }
+  })
+  @IsObject()
+  @ValidateNested()
+  @Type(() => MultiLanguage)
+  description?: MultiLanguage;
   @ApiPropertyOptional({ example: 'banh-mi-ga', description: 'Slug mới' })
   @IsOptional()
   slug?: string;

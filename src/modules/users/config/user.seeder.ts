@@ -12,33 +12,33 @@ export class UserSeeder implements Seeder {
 
   constructor(
     @InjectModel(User.name) private readonly userModel: Model<UserDocument>,
-  ) {}
-    drop(): Promise<any> {
-        throw new Error('Method not implemented.');
-    }
+  ) { }
+  drop(): Promise<any> {
+    throw new Error('Method not implemented.');
+  }
 
   async seed(): Promise<any> {
     this.logger.log('Đang khởi tạo tài khoản Admin mặc định...');
 
     const salt = await bcrypt.genSalt(AppConfig.SECURITY.SALT_ROUNDS);
-    const hashedPassword = await bcrypt.hash('123123', salt); 
+    const hashedPassword = await bcrypt.hash('123123', salt);
 
-    const adminUser:User = {
+    const adminUser: User = {
       email: 'admin@gmail.com',
       password_hash: hashedPassword,
       fullName: 'Quản trị viên Hệ thống',
-      role: UserRoles.ADMIN, 
-        status:UserStatus.ACTIVE,
-        
+      role: UserRoles.ADMIN,
+      status: UserStatus.ACTIVE,
+
     };
 
     const existingAdmin = await this.userModel.findOne({ email: adminUser.email });
 
     if (!existingAdmin) {
-      this.logger.log(' Tạo mới tài khoản Admin thành công!');
+      this.logger.log(' ------------Tạo mới tài khoản Admin thành công!');
       return this.userModel.create(adminUser);
     } else {
-      this.logger.log(' Tài khoản Admin đã tồn tại trên Atlas, không cần tạo lại.');
+      this.logger.log(' ------------Tài khoản Admin đã tồn tại trên Atlas, không cần tạo lại.');
       return null;
     }
   }

@@ -1,15 +1,27 @@
 import { FoodStatus } from '@/schemas/foods.chema';
+import { MultiLanguage } from '@/schemas/MultiLanguage';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsNotEmpty, IsString, IsOptional, IsNumber, IsArray, IsEnum, IsMongoId, Min } from 'class-validator';
+import { Type } from 'class-transformer';
+import { IsNotEmpty, IsString, IsOptional, IsNumber, IsArray, IsEnum, IsMongoId, Min, ValidateNested, IsObject } from 'class-validator';
 
 export class CreateFoodRequest {
-  @ApiProperty({ example: 'Bánh Mì Hội An', description: 'Tên món ăn' })
-  @IsString()
+  @ApiProperty({ example: { vi: 'Bánh Mì Hội An', en: 'Hoi An Banh Mi' } })
+  @IsObject()
+  @ValidateNested()
+  @Type(() => MultiLanguage)
   @IsNotEmpty({ message: 'Tên món ăn không được để trống' })
-  name: string;
+  name: MultiLanguage;
+
+  @ApiPropertyOptional({
+    example: { vi: 'Bánh mì đặc sản với pate và bơ béo ngậy', en: 'Special banh mi with pate and butter' }
+  })
+  @IsObject()
+  @ValidateNested()
+  @Type(() => MultiLanguage)
+  description?: MultiLanguage;
 
   @ApiProperty({ example: 'banh-mi-hoi-an', description: 'Slug (mã) duy nhất của món ăn' })
-  @IsString() 
+  @IsString()
   @IsNotEmpty({ message: 'Món ăn bắt buộc phải gắn với một mã(slug)' })
   slug: string;
 

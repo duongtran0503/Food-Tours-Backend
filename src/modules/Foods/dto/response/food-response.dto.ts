@@ -17,6 +17,9 @@ export class FoodResponse {
   @ApiProperty({ example: 'Bánh Mì Hội An' })
   name: string;
 
+  @ApiProperty({ example: 'Bánh Mì Hội An' })
+  description: string;
+
   @ApiProperty({ example: 'banh-mi-hoi-an' })
   slug: string;
 
@@ -32,9 +35,10 @@ export class FoodResponse {
   @ApiProperty({ example: 'AVAILABLE' })
   status: string;
 
-  constructor(data: EntityDocument<Food>) {
+  constructor(data: any, lang: string = 'vi') {
     this.id = data._id?.toString() || data.id;
-    this.name = data.dishName;
+    this.name = data.dishName?.[lang] || data.dishName?.vi || '';
+    this.description = data.description?.[lang] || data.description?.vi || '';
     this.slug = data.slug;
     this.categoryId = data.category?.toString();
     this.images = data.images || [];

@@ -2,17 +2,35 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsNotEmpty, IsString, IsOptional, IsArray, IsMongoId, IsObject, ValidateNested } from 'class-validator';
 import { Type } from 'class-transformer';
 import { LocationDto } from '@/modules/Restaurants/dto/request/location.dto';
+import { MultiLanguage } from '@/schemas/MultiLanguage';
 
 export class CreateRestaurantRequest {
-  @ApiProperty({ example: 'Quán Cao lầu Thanh', description: 'Tên quán ăn' })
-  @IsString()
-  @IsNotEmpty({ message: 'Tên quán ăn không được để trống' })
-  name: string;
+  @ApiProperty({ example: { vi: 'Quán Cao lầu Thanh', en: 'Thanh Cao Lau Restaurant' } })
+  @IsObject()
+  @ValidateNested()
+  @Type(() => MultiLanguage)
+  name: MultiLanguage;
 
-  @ApiProperty({ example: '26 Thái Phiên, Minh An, Hội An', description: 'Địa chỉ quán ăn' })
-  @IsString()
-  @IsNotEmpty({ message: 'Địa chỉ quán không được để trống' })
-  address: string;
+  @ApiProperty({ example: { vi: '26 Thái Phiên, Hội An', en: '26 Thai Phien, Hoi An' } })
+  @IsObject()
+  @ValidateNested()
+  @Type(() => MultiLanguage)
+  address: MultiLanguage;
+
+  @ApiPropertyOptional({
+    example: { vi: 'Bánh mì đặc sản với pate và bơ béo ngậy', en: 'Special banh mi with pate and butter' }
+  })
+  @IsObject()
+  @ValidateNested()
+  @Type(() => MultiLanguage)
+  description: MultiLanguage;
+
+  @ApiPropertyOptional({ example: { vi: '07:00 - 22:00', en: '7 AM - 10 PM' } })
+  @IsOptional()
+  @IsObject()
+  @ValidateNested()
+  @Type(() => MultiLanguage)
+  openingHours?: MultiLanguage;
 
   @ApiProperty({ type: LocationDto })
   @IsObject()
@@ -26,10 +44,7 @@ export class CreateRestaurantRequest {
   @IsString()
   phoneNumber?: string;
 
-  @ApiPropertyOptional({ example: '07:00 - 22:00', description: 'Giờ mở cửa' })
-  @IsOptional()
-  @IsString()
-  openingHours?: string;
+
 
   @ApiPropertyOptional({ example: ['https://cdn.com/restaurants/quan-thanh.png'] })
   @IsOptional()
@@ -41,5 +56,5 @@ export class CreateRestaurantRequest {
   @IsOptional()
   @IsArray()
   @IsMongoId({ each: true })
-  foods?: string[]; 
+  foods?: string[];
 }

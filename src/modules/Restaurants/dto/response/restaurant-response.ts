@@ -16,6 +16,8 @@ export class RestaurantResponse {
 
   @ApiProperty({ example: 'Quán Cao lầu Thanh' })
   name: string;
+  @ApiProperty({ example: 'Quán Cao lầu Thanh' })
+  description: string;
 
   @ApiProperty({ example: '26 Thái Phiên, Minh An, Hội An' })
   address: string;
@@ -35,14 +37,15 @@ export class RestaurantResponse {
   @ApiProperty({ example: ['65fc34e45d4f3b0012abcd45'] })
   foods: string[];
 
-  constructor(data: EntityDocument<Restaurant>) {
+  constructor(data: any, lang: string = 'vi') {
     this.id = data._id?.toString() || data.id;
-    this.name = data.name;
-    this.address = data.address;
+    this.name = data.name?.[lang] || '';
+    this.address = data.address?.[lang] || '';
     this.location = data.location;
+    this.description = data.description?.[lang] || '';
     this.phoneNumber = data.phoneNumber || '';
-    this.openingHours = data.openingHours || '';
+    this.openingHours = data.openingHours?.[lang] || '';
     this.images = data.images || [];
-    this.foods = data.foods ? data.foods.map(food => food.toString()) : [];
+    this.foods = data.foods ? data.foods.map((food: string) => food.toString()) : [];
   }
 }
