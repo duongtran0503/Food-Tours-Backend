@@ -10,7 +10,8 @@ export enum UserStatus {
 
 export enum UserRoles {
   ADMIN = "ADMIN",
-  CUSTOMER="CUSTOMER"
+  CUSTOMER="CUSTOMER",
+  MERCHANT = "MERCHANT"
 }
 @Schema({ timestamps: true, collection: 'users' })
 export class User {

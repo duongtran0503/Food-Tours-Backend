@@ -1,13 +1,18 @@
+import { Controller, Get, UseGuards, Logger 
+} from "@nestjs/common";
+import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags 
+} from "@nestjs/swagger";
+import { JwtAuthGuard } from "@/modules/auth/guards/jwt-auth.guard";
 import { CurrentUser, ICurrentUser } from "@/common/decorator/current-user.decorator";
 import { UserService } from "@/modules/users/services/user.service";
 import { UserProfileResponse } from "@/modules/users/dto/response/user-profile-response";
-import { Controller, Get } from "@nestjs/common";
-import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from "@nestjs/swagger";
 
 @ApiTags('Users (Profile Management)') 
 @ApiBearerAuth()
+@UseGuards(JwtAuthGuard) 
 @Controller('users')
 export class UserController {
+    private readonly logger = new Logger(UserController.name);
 
     constructor(private readonly userService: UserService) {}
 
@@ -18,8 +23,11 @@ export class UserController {
       description: 'Lấy thông tin profile thành công', 
       type: UserProfileResponse 
     })
-    @ApiResponse({ status: 401, description: 'Token không hợp lệ hoặc hết hạn' })
-    getProfile(@CurrentUser() user: ICurrentUser): Promise<UserProfileResponse> {
+    @ApiResponse({ status: 401, description: 'Bạn cần đăng nhập để thực hiện hành động này' })
+    async getProfile(@CurrentUser() user: ICurrentUser): Promise<UserProfileResponse> {
+
+        this.logger.log(`Fetching profile for User ID: ${user.userId}`);
+
         return this.userService.getProfile(user.userId);
     }
 }

@@ -14,14 +14,12 @@ import { PassportModule } from "@nestjs/passport";
     ConfigModule,
     UsersModule,
     PassportModule,
-    
     JwtModule.registerAsync({
       global: true, 
       imports: [ConfigModule], 
       inject: [ConfigService], 
       useFactory: async (configService: ConfigService) => {
         const secretKey = configService.get<string>('JWT_SECRET');
-        
         return {
           secret: secretKey,
           signOptions: { expiresIn: '1d' },
@@ -30,10 +28,17 @@ import { PassportModule } from "@nestjs/passport";
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService,JwtStrategy,{
+  providers: [
+    AuthService,
+    JwtStrategy,
+    // COMMENT DÒNG NÀY LẠI ĐỂ TẮT BẢO VỆ TOÀN CỤC:
+    /*
+    {
       provide: APP_GUARD,
       useClass: JwtAuthGuard,
-    },],
+    },
+    */
+  ],
   exports: [AuthService], 
 })
 export class AuthModule {}

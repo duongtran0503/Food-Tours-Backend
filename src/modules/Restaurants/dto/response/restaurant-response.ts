@@ -9,6 +9,15 @@ class LocationResponse {
   @ApiProperty({ example: 108.33194 })
   lng: number;
 }
+const formatI18n = (data: any): string => {
+  if (!data) return '';
+  if (typeof data === 'string') return data;
+  if (typeof data === 'object' && data !== null) {
+    // Ưu tiên Tiếng Việt -> Tiếng Anh -> các thứ tiếng khác
+    return data.vi || data.en || data.jp || data.zh || data.ru || Object.values(data)[0] || '';
+  }
+  return String(data);
+};
 
 export class RestaurantResponse {
   @ApiProperty({ example: '65fc34e45d4f3b0012abcd11' })
@@ -37,8 +46,8 @@ export class RestaurantResponse {
 
   constructor(data: EntityDocument<Restaurant>) {
     this.id = data._id?.toString() || data.id;
-    this.name = data.name;
-    this.address = data.address;
+    this.name = formatI18n(data.name);
+    this.address = formatI18n(data.address);
     this.location = data.location;
     this.phoneNumber = data.phoneNumber || '';
     this.openingHours = data.openingHours || '';
@@ -46,3 +55,5 @@ export class RestaurantResponse {
     this.foods = data.foods ? data.foods.map(food => food.toString()) : [];
   }
 }
+
+

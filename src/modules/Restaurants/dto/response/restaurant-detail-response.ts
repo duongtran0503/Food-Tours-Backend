@@ -3,6 +3,15 @@ import { EntityDocument } from "@/common/repositories/base-repository";
 import { FoodResponse } from "@/modules/Foods/dto/response/food-response.dto";
 import { Restaurant } from "@/schemas/restaurant.schema";
 
+const formatI18n = (data: any): string => {
+  if (!data) return '';
+  if (typeof data === 'string') return data;
+  if (typeof data === 'object' && data !== null) {
+    return data.vi || data.en || data.jp || data.zh || data.ru || Object.values(data)[0] || '';
+  }
+  return String(data);
+};
+
 export class RestaurantDetailResponse {
   @ApiProperty({ example: '65fc34e45d4f3b0012abcd11' })
   id: string;
@@ -15,7 +24,10 @@ export class RestaurantDetailResponse {
 
   @ApiProperty({
     type: 'object',
-    properties: { lat: { type: 'number', example: 15.87944 }, lng: { type: 'number', example: 108.33194 } }
+    properties: { 
+      lat: { type: 'number', example: 15.87944 }, 
+      lng: { type: 'number', example: 108.33194 } 
+    }
   })
   location: { lat: number; lng: number };
 
@@ -33,13 +45,12 @@ export class RestaurantDetailResponse {
 
   constructor(data: EntityDocument<Restaurant>) {
     this.id = data._id?.toString() || data.id;
-    this.name = data.name;
-    this.address = data.address;
+    this.name = formatI18n(data.name);
+    this.address = formatI18n(data.address);
     this.location = data.location;
     this.phoneNumber = data.phoneNumber || '';
     this.openingHours = data.openingHours || '';
     this.images = data.images || [];
-    
     this.foods = data.foods && data.foods.length > 0 && typeof data.foods[0] === 'object'
       ? data.foods.map((food: any) => new FoodResponse(food))
       : [];

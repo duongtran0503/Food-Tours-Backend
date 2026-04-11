@@ -1,25 +1,28 @@
+import { Controller, Post, Body, Get, Query, Param, Patch, Delete, UseGuards } from '@nestjs/common';
+import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Public } from '@/common/decorator/is.public';
 import { Roles } from '@/common/decorator/roles.decorator';
-import { ActionCategoryFoodRequest } from '@/modules/Foods/dto/request/action-category-food.request';
-import { CreateFoodRequest } from '@/modules/Foods/dto/request/create-food.request';
-import { GetFoodsQueryRequest } from '@/modules/Foods/dto/request/get-foods-query.request';
-import { UpdateFoodRequest } from '@/modules/Foods/dto/request/update-food.request';
-import { FoodResponse } from '@/modules/Foods/dto/response/food-response.dto';
-import { FoodService } from '@/modules/Foods/services/food.service';
+import { RolesGuard } from "@/modules/auth/guards/roles.guard"; 
+import { JwtAuthGuard } from '@/modules/auth/guards/jwt-auth.guard';
 import { UserRoles } from '@/schemas/user.schema';
-import { Controller, Post, Body, Get, Query, Param, Patch, Delete } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { FoodService } from '@/modules/Foods/services/food.service';
+import { CreateFoodRequest } from '@/modules/Foods/dto/request/create-food.request';
+import { UpdateFoodRequest } from '@/modules/Foods/dto/request/update-food.request';
+import { GetFoodsQueryRequest } from '@/modules/Foods/dto/request/get-foods-query.request';
+import { ActionCategoryFoodRequest } from '@/modules/Foods/dto/request/action-category-food.request';
+import { FoodResponse } from '@/modules/Foods/dto/response/food-response.dto';
 
-@ApiTags('Foods') 
+@ApiTags('Foods')
 @Controller('foods')
+@UseGuards(JwtAuthGuard, RolesGuard)
 export class FoodController {
   constructor(private readonly foodService: FoodService) {}
 
   @Post()
-  @Roles(UserRoles.ADMIN) 
+  @Roles(UserRoles.MERCHANT)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Tạo món ăn mới (Admin)' })
-  @ApiResponse({ status: 201, description: 'Tạo thành công', type: FoodResponse })
+  @ApiOperation({ summary: 'Tạo món ăn mới (Merchant)' })
+  @ApiResponse({ status: 201, type: FoodResponse })
   createFood(@Body() data: CreateFoodRequest): Promise<FoodResponse> {
     return this.foodService.createFood(data);
   }
@@ -27,25 +30,6 @@ export class FoodController {
   @Public()
   @Get()
   @ApiOperation({ summary: 'Xem danh sách món ăn phân trang (Công khai)' })
-  @ApiResponse({ 
-    status: 200, 
-    description: 'Thành công',
-    schema: {
-      properties: {
-        items: { type: 'array', items: { $ref: '#/components/schemas/FoodResponse' } },
-        meta: {
-          type: 'object',
-          properties: {
-            totalItems: { type: 'number' },
-            itemCount: { type: 'number' },
-            itemsPerPage: { type: 'number' },
-            totalPages: { type: 'number' },
-            currentPage: { type: 'number' },
-          }
-        }
-      }
-    }
-  })
   getPublicFoods(@Query() query: GetFoodsQueryRequest) {
     return this.foodService.findAllPublicFoods(query);
   }
@@ -53,17 +37,16 @@ export class FoodController {
   @Public()
   @Get(':id')
   @ApiOperation({ summary: 'Xem chi tiết một món ăn' })
-  @ApiResponse({ status: 200, description: 'Thành công', type: FoodResponse })
-  @ApiResponse({ status: 404, description: 'Không tìm thấy món ăn' })
+  @ApiResponse({ status: 200, type: FoodResponse })
   getFoodDetail(@Param('id') id: string): Promise<FoodResponse> {
     return this.foodService.findFoodById(id);
   }
 
   @Patch(':id')
-  @Roles(UserRoles.ADMIN) 
+  @Roles(UserRoles.MERCHANT)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Chỉnh sửa món ăn (Admin)' })
-  @ApiResponse({ status: 200, description: 'Cập nhật thành công', type: FoodResponse })
+  @ApiOperation({ summary: 'Chỉnh sửa món ăn (Merchant)' })
+  @ApiResponse({ status: 200, type: FoodResponse })
   async updateFood(
     @Param('id') id: string,
     @Body() data: UpdateFoodRequest,
@@ -72,10 +55,9 @@ export class FoodController {
   }
 
   @Delete(':id')
-  @Roles(UserRoles.ADMIN) 
+  @Roles(UserRoles.MERCHANT)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Xóa món ăn (Admin)' })
-  @ApiResponse({ status: 200, description: 'Xóa món ăn thành công' })
+  @ApiOperation({ summary: 'Xóa món ăn (Merchant)' })
   async deleteFood(@Param('id') id: string) {
     await this.foodService.deleteFood(id);
     return {
@@ -85,10 +67,9 @@ export class FoodController {
   }
 
   @Patch(':id/categories')
-  @Roles(UserRoles.ADMIN) 
+  @Roles(UserRoles.MERCHANT)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Cập nhật danh mục cho món ăn (Admin)' })
-  @ApiResponse({ status: 200, description: 'Cập nhật thành công', type: FoodResponse })
+  @ApiOperation({ summary: 'Cập nhật danh mục cho món ăn (Merchant)' })
   addCategory(
     @Param('id') foodId: string,
     @Body() data: ActionCategoryFoodRequest
@@ -97,10 +78,9 @@ export class FoodController {
   }
 
   @Delete(':id/categories')
-  @Roles(UserRoles.ADMIN)
+  @Roles(UserRoles.MERCHANT)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Gỡ bỏ danh mục khỏi món ăn (Admin)' })
-  @ApiResponse({ status: 200, description: 'Gỡ bỏ thành công', type: FoodResponse })
+  @ApiOperation({ summary: 'Gỡ bỏ danh mục khỏi món ăn (Merchant)' })
   removeCategory(
     @Param('id') foodId: string,
   ): Promise<FoodResponse> {
