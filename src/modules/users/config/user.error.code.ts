@@ -9,6 +9,7 @@ export const UserErrorCode = {
 
   // --- Tạo mới tài khoản (Creation) ---
   USER_EMAIL_DUPLICATED: { code: 'USER_201', message: 'Email này đã được đăng ký bởi người dùng khác', httpStatus: HttpStatus.BAD_REQUEST },
+  EMAIL_ALREADY_EXISTS: {code: "USER_102", message: "Email này đã được đăng ký", httpStatus: HttpStatus.BAD_REQUEST},
   USER_PHONE_DUPLICATED: { code: 'USER_202', message: 'Số điện thoại này đã được đăng ký bởi người dùng khác', httpStatus: HttpStatus.BAD_REQUEST },
 
   // --- Cập nhật thông tin (Profile Updates) ---

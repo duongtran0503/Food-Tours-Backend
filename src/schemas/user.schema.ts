@@ -10,8 +10,10 @@ export enum UserStatus {
 
 export enum UserRoles {
   ADMIN = "ADMIN",
-  CUSTOMER="CUSTOMER"
+  STAFF = "STAFF",
+  CUSTOMER = "CUSTOMER"
 }
+
 @Schema({ timestamps: true, collection: 'users' })
 export class User {
   @Prop({ required: true, unique: true, lowercase: true, trim: true }) 
@@ -26,7 +28,7 @@ export class User {
   @Prop({ trim: true })
   phoneNumber?: string;
 
-  @Prop({ default: UserRoles.CUSTOMER,type:String, enum:Object.values(UserRoles) })
+  @Prop({ default: UserRoles.CUSTOMER, type: String, enum: Object.values(UserRoles) })
   role: UserRoles;
 
   @Prop({ 
@@ -35,8 +37,6 @@ export class User {
     enum: Object.values(UserStatus) 
   })
   status: UserStatus;
-
-
 
   @Prop({ default: 'https://www.gravatar.com/avatar/?d=mp' })
   avatar?: string;
