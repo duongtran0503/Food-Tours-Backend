@@ -6,8 +6,10 @@ import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from "@nestjs/swagg
 import { CreateUserRequest } from "../dto/request/create-user.request";
 import { UpdateUserRequest } from "../dto/request/update-user.request";
 import { GetUsersQueryRequest } from "../dto/request/get-users-query.request";
+import { UserRoles } from "@/schemas/user.schema";
+import { Roles } from "@/common/decorator/roles.decorator";
 
-@ApiTags('Users') // Đổi tên Tag lại một chút để bao quát cả Profile lẫn Quản lý User
+@ApiTags('Users')
 @ApiBearerAuth()
 @Controller('users')
 export class UserController {
@@ -24,13 +26,9 @@ export class UserController {
     getProfile(@CurrentUser() user: ICurrentUser): Promise<UserProfileResponse> {
         return this.userService.getProfile(user.userId);
     }
-
-    // ========================================================
-    // 2. CÁC API CRUD CHO QUẢN TRỊ VIÊN (ADMIN / STAFF)
-    // ========================================================
     
     @Post()
-    // @Roles(UserRoles.ADMIN) // Bỏ comment nếu bạn muốn check quyền chỉ Admin mới được tạo
+    @Roles(UserRoles.ADMIN)
     @ApiOperation({ summary: 'Tạo tài khoản User mới' })
     @ApiResponse({ status: 201, description: 'Tạo thành công', type: UserProfileResponse })
     create(@Body() data: CreateUserRequest) {
@@ -38,7 +36,7 @@ export class UserController {
     }
 
     @Get()
-    // @Roles(UserRoles.ADMIN, UserRoles.STAFF)
+    @Roles(UserRoles.ADMIN, UserRoles.STAFF)
     @ApiOperation({ summary: 'Lấy danh sách người dùng có phân trang & tìm kiếm' })
     @ApiResponse({ status: 200, description: 'Thành công' })
     findAll(@Query() query: GetUsersQueryRequest) {
@@ -46,16 +44,15 @@ export class UserController {
     }
 
     @Get('/:id')
-    // @Roles(UserRoles.ADMIN, UserRoles.STAFF)
+    @Roles(UserRoles.ADMIN, UserRoles.STAFF)
     @ApiOperation({ summary: 'Xem chi tiết 1 người dùng theo ID' })
     @ApiResponse({ status: 200, type: UserProfileResponse })
     findOne(@Param('id') id: string) {
-        // Tận dụng luôn hàm getProfile trong service vì logic giống hệt nhau (tìm user theo ID)
         return this.userService.getProfile(id); 
     }
 
     @Patch('/:id')
-    // @Roles(UserRoles.ADMIN)
+    @Roles(UserRoles.ADMIN)
     @ApiOperation({ summary: 'Cập nhật thông tin người dùng' })
     @ApiResponse({ status: 200, type: UserProfileResponse })
     update(
@@ -66,7 +63,7 @@ export class UserController {
     }
 
     @Delete('/:id')
-    // @Roles(UserRoles.ADMIN)
+    @Roles(UserRoles.ADMIN)
     @ApiOperation({ summary: 'Xóa người dùng' })
     @ApiResponse({ status: 200, description: 'Xóa thành công' })
     remove(@Param('id') id: string) {
