@@ -1,6 +1,7 @@
 import { Match } from '@/common/decorator/match.decorator';
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEmail, IsNotEmpty, IsString, MinLength } from 'class-validator';
+import { IsEmail, IsNotEmpty, IsString, MinLength, IsEnum } from 'class-validator';
+import { UserRoles } from '@/schemas/user.schema';
 
 export class RegisterUserRequest {
   @ApiProperty({ 
@@ -36,4 +37,21 @@ export class RegisterUserRequest {
   @IsString()
   @IsNotEmpty({ message: 'Họ tên không được để trống' })
   fullName: string;
+
+  @ApiProperty({ 
+    example: '0987654321', 
+    description: 'Số điện thoại',
+    required: false 
+  })
+  @IsString()
+  phoneNumber?: string;
+
+  @ApiProperty({ 
+    example: 'USER', 
+    enum: UserRoles,
+    description: 'Vai trò người dùng' 
+  })
+  @IsNotEmpty({ message: 'Vui lòng chọn vai trò' })
+  @IsEnum(UserRoles, { message: 'Vai trò (Role) không tồn tại trong hệ thống' })
+  role: UserRoles;
 }

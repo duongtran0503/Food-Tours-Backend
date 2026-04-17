@@ -11,7 +11,7 @@ export enum UserStatus {
 export enum UserRoles {
   ADMIN = "ADMIN",
   STAFF = "STAFF",
-  CUSTOMER = "CUSTOMER"
+  USER = "USER"
 }
 
 @Schema({ timestamps: true, collection: 'users' })
@@ -28,7 +28,7 @@ export class User {
   @Prop({ trim: true })
   phoneNumber?: string;
 
-  @Prop({ default: UserRoles.CUSTOMER, type: String, enum: Object.values(UserRoles) })
+  @Prop({ default: UserRoles.USER, type: String, enum: Object.values(UserRoles) })
   role: UserRoles;
 
   @Prop({ 
