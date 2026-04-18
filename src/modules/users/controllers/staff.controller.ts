@@ -10,7 +10,7 @@ import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Patch, Post
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from "@nestjs/swagger";
 
 @ApiTags('Staffs (Admin Management)')
-@ApiBearerAuth() // 🛡️ Cả Controller đều cần token JWT của Admin
+@ApiBearerAuth() 
 @Controller("staffs")
 export class StaffController {
    constructor(private readonly staffService: StaffService) {}
@@ -57,8 +57,8 @@ export class StaffController {
   @ApiOperation({ summary: 'Khởi tạo tài khoản nhân viên mới (Admin)' })
   @ApiResponse({ status: 201, description: 'Tạo tài khoản thành công', type: UserProfileResponse })
   @ApiResponse({ status: 400, description: 'Email đã tồn tại / Dữ liệu không hợp lệ' })
-  async createStaff(@Body() userData: CreateStaffRequest): Promise<UserProfileResponse> {
-    return this.staffService.createStaff(userData);
+  async createStaff(@Body() userData: CreateStaffRequest, @CurrentUser('role') role: string): Promise<UserProfileResponse> {
+    return this.staffService.createStaff(userData, role);
   }
 
   @Patch(':id')
@@ -69,8 +69,9 @@ export class StaffController {
   async updateStaff(
     @Param('id') id: string,
     @Body() userData: UpdateStaffRequest,
+    @CurrentUser('role') role: string
   ): Promise<UserProfileResponse> {
-    return this.staffService.updateStaff(id, userData);
+    return this.staffService.updateStaff(id, userData, role);
   }
 
   @Delete(':id')
@@ -82,8 +83,9 @@ export class StaffController {
   async deleteStaff(
     @Param('id') id: string,
     @CurrentUser('userId') currentAdminId: string, 
+    @CurrentUser('role') role: string
   ) {
-    await this.staffService.deleteStaff(id, currentAdminId);
+    await this.staffService.deleteStaff(id, currentAdminId, role);
     
     return {
       code: 'SUCCESS',
