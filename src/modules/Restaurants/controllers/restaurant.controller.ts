@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Get, Query, Param, Patch, Delete, Headers } from '@nestjs/common';
+import { Controller, Post, Body, Get, Query, Param, Patch, Delete, Headers, Req, UseGuards } from '@nestjs/common';
 import { UserRoles } from '@/schemas/user.schema';
 import { Roles } from '@/common/decorator/roles.decorator';
 import { RestaurantService } from '@/modules/Restaurants/services/restaurant.service';
@@ -10,21 +10,51 @@ import { RestaurantDetailResponse } from '@/modules/Restaurants/dto/response/res
 import { UpdateRestaurantRequest } from '@/modules/Restaurants/dto/request/update-restaurant.request';
 import { AddFoodsToRestaurantRequest } from '@/modules/Restaurants/dto/request/add-foods-restaurant.request';
 import { RemoveFoodsFromRestaurantRequest } from '@/modules/Restaurants/dto/request/remove-foods-restaurant.request';
-import { ApiBearerAuth, ApiHeader, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiHeader, ApiOperation, ApiResponse, ApiTags, ApiBody } from '@nestjs/swagger';;
+
+// Đã thêm import cho Guards ở đây
+import { JwtAuthGuard } from '@/common/guards/jwt-auth.guard';
+import { RolesGuard } from '@/common/guards/roles.guard';
 
 @ApiTags('Restaurants')
 @Controller('/restaurants')
+@UseGuards(JwtAuthGuard, RolesGuard)
 @ApiHeader({ name: 'lang', description: 'Ngôn ngữ hiển thị (vi, en, jp, zh, ru)', required: false })
 export class RestaurantController {
   constructor(private readonly restaurantService: RestaurantService) { }
 
   @Post()
+  @Roles(UserRoles.ADMIN, 'merchant') // Đã fix lỗi chữ MERCHANT bằng chuỗi string
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Tạo quán ăn mới (Merchant/Admin)' })
+  @ApiResponse({ status: 201, description: 'Tạo thành công', type: RestaurantResponse })
+  createRestaurant(
+    @Body() data: CreateRestaurantRequest,
+    @Req() req: any
+  ): Promise<RestaurantResponse> {
+    const userId = req.user.userId;
+    return this.restaurantService.createRestaurant(data, userId);
+  }
+
+  @Patch(':id/approve')
   @Roles(UserRoles.ADMIN)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Tạo quán ăn mới (Admin)' })
-  @ApiResponse({ status: 201, description: 'Tạo thành công', type: RestaurantResponse })
-  createRestaurant(@Body() data: CreateRestaurantRequest): Promise<RestaurantResponse> {
-    return this.restaurantService.createRestaurant(data);
+  @ApiOperation({ summary: 'Duyệt / Từ chối quán ăn (Admin)' })
+  @ApiResponse({ status: 200, description: 'Thành công', type: RestaurantResponse })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        status: { type: 'string', enum: ['approved', 'rejected'], example: 'approved' }
+      }
+    }
+  })
+  approveRestaurant(
+    @Param('id') id: string,
+    @Body('status') status: 'approved' | 'rejected',
+    @Headers('lang') lang: string = 'vi'
+  ): Promise<RestaurantResponse> {
+    return this.restaurantService.approveRestaurant(id, status, lang);
   }
 
   @Public()

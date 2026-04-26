@@ -9,14 +9,18 @@ import { FoodService } from '@/modules/Foods/services/food.service';
 import { UserRoles } from '@/schemas/user.schema';
 import { Controller, Post, Body, Get, Query, Param, Patch, Delete, Headers } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags, ApiHeader } from '@nestjs/swagger';
+import { UseGuards } from '@nestjs/common'; // Thêm dòng này
+import { JwtAuthGuard } from '@/common/guards/jwt-auth.guard'; // Thêm dòng này
+import { RolesGuard } from '@/common/guards/roles.guard'; // Thêm dòng này
 
 @ApiTags('Foods')
 @Controller('foods')
+@UseGuards(JwtAuthGuard, RolesGuard)
 export class FoodController {
   constructor(private readonly foodService: FoodService) { }
 
   @Post()
-  @Roles(UserRoles.ADMIN)
+  @Roles(UserRoles.ADMIN, 'merchant')
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Tạo món ăn mới (Admin)' })
   @ApiResponse({ status: 201, description: 'Tạo thành công', type: FoodResponse })
@@ -50,9 +54,9 @@ export class FoodController {
   }
 
   @Patch(':id')
-  @Roles(UserRoles.ADMIN)
+  @Roles(UserRoles.ADMIN, 'merchant')
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Chỉnh sửa món ăn (Admin)' })
+  @ApiOperation({ summary: 'Chỉnh sửa món ăn (Admin/Merchant)' })
   @ApiHeader({ name: 'lang', description: 'Ngôn ngữ hiển thị sau khi cập nhật', required: false })
   @ApiResponse({ status: 200, description: 'Cập nhật thành công', type: FoodResponse })
   async updateFood(
@@ -64,9 +68,9 @@ export class FoodController {
   }
 
   @Delete(':id')
-  @Roles(UserRoles.ADMIN)
+  @Roles(UserRoles.ADMIN, 'merchant')
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Xóa món ăn (Admin)' })
+  @ApiOperation({ summary: 'Xóa món ăn (Admin/Merchant)' })
   @ApiResponse({ status: 200, description: 'Xóa món ăn thành công' })
   async deleteFood(@Param('id') id: string) {
     await this.foodService.deleteFood(id);
@@ -77,7 +81,7 @@ export class FoodController {
   }
 
   @Patch(':id/categories')
-  @Roles(UserRoles.ADMIN)
+  @Roles(UserRoles.ADMIN, 'merchant')
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Cập nhật danh mục cho món ăn (Admin)' })
   addCategory(
@@ -89,7 +93,7 @@ export class FoodController {
   }
 
   @Delete(':id/categories')
-  @Roles(UserRoles.ADMIN)
+  @Roles(UserRoles.ADMIN, 'merchant')
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Gỡ bỏ danh mục khỏi món ăn (Admin)' })
   removeCategory(

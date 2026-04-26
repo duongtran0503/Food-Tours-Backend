@@ -3,6 +3,7 @@ import { AuthModule } from '@/modules/auth/auth.module';
 import { CategoriesModule } from '@/modules/Categories/category.module';
 import { FoodModule } from '@/modules/Foods/food.module';
 import { RestaurantModule } from '@/modules/Restaurants/restaurant.module';
+import { TourModule } from '@/modules/Tours/tour.module';
 import { UploadModule } from '@/modules/upload/upload.module';
 import { UsersModule } from '@/modules/users/user.module';
 import { Logger, Module } from '@nestjs/common';
@@ -17,6 +18,7 @@ import { MongooseModule } from '@nestjs/mongoose';
     CategoriesModule,
     FoodModule,
     RestaurantModule,
+    TourModule,
     ConfigModule.forRoot({
       isGlobal: true,
     }),

@@ -8,14 +8,18 @@ import { CategoriesService } from "@/modules/Categories/services/category.servic
 import { UserRoles } from "@/schemas/user.schema";
 import { Body, Controller, Delete, Get, Param, Patch, Post, Query, Headers } from "@nestjs/common";
 import { ApiBearerAuth, ApiHeader, ApiOperation, ApiResponse, ApiTags } from "@nestjs/swagger";
+import { UseGuards } from '@nestjs/common';
+import { JwtAuthGuard } from '@/common/guards/jwt-auth.guard';
+import { RolesGuard } from '@/common/guards/roles.guard';
 
 @ApiTags('Categories') // Gom nhóm module Categories trên UI
 @Controller("categories")
+@UseGuards(JwtAuthGuard, RolesGuard)
 export class CategoryController {
   constructor(private readonly categoriesService: CategoriesService) { }
 
   @Post()
-  @Roles(UserRoles.ADMIN)
+  @Roles(UserRoles.ADMIN, 'merchant')
   @ApiBearerAuth() // Đánh dấu API cần token Admin
   @ApiOperation({ summary: 'Tạo danh mục món ăn mới (Admin)' })
   @ApiResponse({ status: 201, description: 'Tạo thành công', type: CategoryResponse })
@@ -62,7 +66,7 @@ export class CategoryController {
   // Các hàm create, update cũng thêm @Headers('lang') tương tự để trả về Response đúng tiếng
 
   @Patch(':id')
-  @Roles(UserRoles.ADMIN)
+  @Roles(UserRoles.ADMIN, 'merchant')
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Chỉnh sửa danh mục món ăn (Admin)' })
   @ApiResponse({ status: 200, description: 'Cập nhật thành công', type: CategoryResponse })
@@ -75,7 +79,7 @@ export class CategoryController {
   }
 
   @Delete(':id')
-  @Roles(UserRoles.ADMIN)
+  @Roles(UserRoles.ADMIN, 'merchant')
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Xóa danh mục (Admin)' })
   @ApiResponse({

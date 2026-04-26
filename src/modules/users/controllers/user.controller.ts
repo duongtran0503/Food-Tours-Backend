@@ -8,10 +8,14 @@ import { UpdateUserRequest } from "../dto/request/update-user.request";
 import { GetUsersQueryRequest } from "../dto/request/get-users-query.request";
 import { UserRoles } from "@/schemas/user.schema";
 import { Roles } from "@/common/decorator/roles.decorator";
+import { UseGuards } from '@nestjs/common';
+import { JwtAuthGuard } from '@/common/guards/jwt-auth.guard';
+import { RolesGuard } from '@/common/guards/roles.guard';
 
 @ApiTags('Users')
 @ApiBearerAuth()
 @Controller('users')
+@UseGuards(JwtAuthGuard, RolesGuard)
 export class UserController {
 
     constructor(private readonly userService: UserService) {}

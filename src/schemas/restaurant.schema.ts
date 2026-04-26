@@ -17,6 +17,14 @@ export class Restaurant {
   @Prop({ type: MultiLanguage, required: true })
   description: MultiLanguage;
 
+  // Ai là người tạo/sở hữu quán ăn này?
+  @Prop({ type: Types.ObjectId, ref: 'User', required: true })
+  owner_id: Types.ObjectId;
+
+  // Trạng thái phê duyệt của Admin
+  @Prop({ type: String, enum: ['pending', 'approved', 'rejected'], default: 'pending' })
+  status: string;
+  
   @Prop({
     type: {
       lat: { type: Number, required: true },
