@@ -1,4 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { EntityDocument } from "@/common/repositories/base-repository";
 import { User } from "@/schemas/user.schema";
 
@@ -18,6 +18,9 @@ export class UserProfileResponse {
   @ApiProperty({ example: 'ACTIVE', enum: ['ACTIVE', 'LOCKED'] })
   status: string;
 
+  @ApiPropertyOptional({ example: '0987654321' })
+  phoneNumber?: string;
+
   @ApiProperty({ example: 'https://cdn.com/avatar.png' })
   avatar: string;
 
@@ -34,6 +37,7 @@ export class UserProfileResponse {
     this.role = user.role;
     this.status = user.status;
     this.avatar = user.avatar || '';
+    this.phoneNumber = user.phoneNumber || '';
     this.createdAt = user.createdAt;
     this.updatedAt = user.updatedAt;
   }

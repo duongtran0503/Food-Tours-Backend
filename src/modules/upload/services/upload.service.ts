@@ -15,6 +15,25 @@ export class UploadService {
     }
     return this.uploadToCloudinary(file, 'foodievk/audios', 'video'); 
   }
+  async deleteFile(publicId: string): Promise<any> {
+    try {
+      const isAudio = publicId.includes('foodievk/audios');
+      const resourceType = isAudio ? 'video' : 'image';
+
+      const result = await cloudinary.uploader.destroy(publicId, { resource_type: resourceType });
+      
+      if (result.result !== 'ok') {
+        throw new BadRequestException(`Không thể xóa tệp. Trạng thái từ Cloudinary: ${result.result}`);
+      }
+      return result;
+    } catch (error) {
+      if (error instanceof Error) {
+        throw new BadRequestException('Lỗi hệ thống khi tương tác với Cloudinary: ' + error.message);
+      }
+      throw new BadRequestException('Lỗi hệ thống không xác định khi tương tác với Cloudinary');
+    }
+  }
+
   private uploadToCloudinary(
     file: Express.Multer.File,
     folder: string,

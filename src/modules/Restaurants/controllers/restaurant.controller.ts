@@ -51,7 +51,7 @@ export class RestaurantController {
   })
   getPublicRestaurants(
     @Query() query: GetRestaurantsQueryRequest,
-    @Headers('lang') lang: string = 'vi' // 👈 Nhận lang từ Header
+    @Headers('lang') lang: string = 'vi'
   ) {
     return this.restaurantService.findAllPublicRestaurants(query, lang);
   }
@@ -63,7 +63,7 @@ export class RestaurantController {
   @ApiResponse({ status: 404, description: 'Quán ăn không tồn tại' })
   async getRestaurantDetail(
     @Param('id') id: string,
-    @Headers('lang') lang: string = 'vi' // 👈 Nhận lang từ Header
+    @Headers('lang') lang: string = 'vi'
   ): Promise<RestaurantDetailResponse> {
     return this.restaurantService.findRestaurantById(id, lang);
   }
@@ -76,7 +76,7 @@ export class RestaurantController {
   async updateRestaurant(
     @Param('id') id: string,
     @Body() data: UpdateRestaurantRequest,
-    @Headers('lang') lang: string = 'vi' // 👈 Nhận lang từ Header
+    @Headers('lang') lang: string = 'vi'
   ): Promise<RestaurantResponse> {
     return this.restaurantService.updateRestaurant(id, data, lang);
   }

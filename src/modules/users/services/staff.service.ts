@@ -5,27 +5,26 @@ import { CreateStaffRequest } from "@/modules/users/dto/request/create-staff.req
 import { GetStaffsQueryRequest } from "@/modules/users/dto/request/get-staffs-query-request";
 import { UserProfileResponse } from "@/modules/users/dto/response/user-profile-response";
 import { UserRepository } from "@/modules/users/repositories/user.repository";
-import {  UserDocument, UserRoles } from "@/schemas/user.schema";
-import {  BadRequestException, Injectable, InternalServerErrorException } from "@nestjs/common";
+import { UserDocument, UserRoles } from "@/schemas/user.schema";
+import { ForbiddenException, Injectable, InternalServerErrorException } from "@nestjs/common";
 import { QueryFilter } from "mongoose";
-import bcrypt from "bcrypt"
+import * as bcrypt from "bcrypt";
 import { UpdateStaffRequest } from "@/modules/users/dto/request/update.staff.request";
+
 @Injectable()
 export class StaffService {
-    constructor(private readonly userRepository:UserRepository){}
+  constructor(private readonly userRepository: UserRepository) {}
 
-    async findAllStaffs(query: GetStaffsQueryRequest) {
+  // Lấy danh sách (Cho phép cả ADMIN và STAFF xem)
+  async findAllStaffs(query: GetStaffsQueryRequest) {
     const { page = 1, limit = 10, search, status } = query;
     const skip = (page - 1) * limit;
 
     const filter: QueryFilter<UserDocument> = {
-      role: UserRoles.ADMIN,
+      role: { $in: [UserRoles.ADMIN, UserRoles.STAFF] as any[] }, 
     };
 
-    if (status) {
-      filter.status = status;
-    }
-
+    if (status) filter.status = status;
     if (search) {
       filter.$or = [
         { fullName: { $regex: search, $options: 'i' } },
@@ -34,14 +33,12 @@ export class StaffService {
     }
 
     const userModel = this.userRepository.getModel();
-    
     const [staffs, totalItems] = await Promise.all([
       userModel.find(filter).skip(skip).limit(limit).lean().exec(),
       userModel.countDocuments(filter).exec(),
     ]);
 
     const dataFormatted = staffs.map((staff) => new UserProfileResponse(staff));
-
     return {
       items: dataFormatted,
       meta: {
@@ -54,93 +51,80 @@ export class StaffService {
     };
   }
 
-
+  // Xem chi tiết (Cho phép cả ADMIN và STAFF xem)
   async findStaffById(id: string): Promise<UserProfileResponse> {
     const staff = await this.userRepository.findById(id);
+    if (!staff) throw new AppException(UserErrorCode.USER_NOT_FOUND);
 
-    if (!staff) {
-      throw new AppException(UserErrorCode.USER_NOT_FOUND);
-    }
-
-    if (staff.role !== UserRoles.ADMIN) {
+    if (staff.role !== UserRoles.ADMIN && staff.role !== UserRoles.STAFF) {
       throw new AppException(UserErrorCode.USER_IS_NOT_ADMIN);
     }
-
     return new UserProfileResponse(staff);
   }
 
-
-  async createStaff(userData: CreateStaffRequest): Promise<UserProfileResponse> {
-    const { email, fullName, password } = userData;
-
-    const existingUser = await this.userRepository.findOne({ email });
-    if (existingUser) {
-      throw  new AppException(UserErrorCode.USER_ALREADY_ACTIVE)
+  // THÊM: Chỉ ADMIN mới được tạo
+  async createStaff(userData: CreateStaffRequest, requesterRole: string): Promise<UserProfileResponse> {
+    if (requesterRole !== UserRoles.ADMIN) {
+      throw new ForbiddenException("Chỉ Quản trị viên (Admin) mới có quyền tạo tài khoản!");
     }
 
+    const { email, fullName, password, phoneNumber, role } = userData;
+
+    const existingUser = await this.userRepository.findOne({ email });
+    if (existingUser) throw new AppException(UserErrorCode.USER_ALREADY_ACTIVE);
     
     const password_hash = await bcrypt.hash(password, AppConfig.SECURITY.SALT_ROUNDS);
 
-    // 3. Chuẩn bị thông tin lưu vào DB
     const newStaffData = {
-      email,
-      fullName,
-      password_hash,
-      role: UserRoles.ADMIN,
+      email, fullName, phoneNumber, password_hash,
+      role: role || UserRoles.STAFF,
     };
 
     try {
       const createdStaff = await this.userRepository.create(newStaffData as any);
-      
       return new UserProfileResponse(createdStaff);
     } catch (error) {
-      throw new InternalServerErrorException('Đã xảy ra lỗi hệ thống khi tạo nhân viên.');
+      throw new InternalServerErrorException('Đã xảy ra lỗi hệ thống khi tạo tài khoản.');
     }
   }
 
-
-  async updateStaff(id: string, userData: UpdateStaffRequest): Promise<UserProfileResponse> {
-    // 1. Tìm kiếm nhân viên hiện tại
-    const staff = await this.userRepository.findById(id);
-    if (!staff) {
-      throw  new AppException(UserErrorCode.USER_NOT_FOUND)
+  // SỬA: Chỉ ADMIN mới được sửa
+  async updateStaff(id: string, userData: UpdateStaffRequest, requesterRole: string): Promise<UserProfileResponse> {
+    if (requesterRole !== UserRoles.ADMIN) {
+      throw new ForbiddenException("Chỉ Quản trị viên (Admin) mới có quyền chỉnh sửa tài khoản!");
     }
 
-    if (staff.role !== UserRoles.ADMIN) {
-      throw new AppException(UserErrorCode.USER_UPDATE_FAILED)
+    const staff = await this.userRepository.findById(id);
+    if (!staff) throw new AppException(UserErrorCode.USER_NOT_FOUND);
+
+    if (staff.role !== UserRoles.ADMIN && staff.role !== UserRoles.STAFF) {
+      throw new AppException(UserErrorCode.USER_UPDATE_FAILED);
     }
 
     const updatedStaff = await this.userRepository.update(id, userData);
+    if (!updatedStaff) throw new AppException(UserErrorCode.USER_UPDATE_FAILED);
 
-    if (!updatedStaff) {
-      throw new AppException(UserErrorCode.USER_UPDATE_FAILED)
-    }
-
-    return new UserProfileResponse(updatedStaff );
+    return new UserProfileResponse(updatedStaff);
   }
 
+  // XÓA: Chỉ ADMIN mới được xóa
+  async deleteStaff(id: string, currentAdminId: string, requesterRole: string): Promise<void> {
+    if (requesterRole !== UserRoles.ADMIN) {
+      throw new ForbiddenException("Chỉ Quản trị viên (Admin) mới có quyền xóa tài khoản!");
+    }
 
-  async deleteStaff(id: string, currentAdminId: string): Promise<void> {
     if (id === currentAdminId) {
-      throw new AppException(UserErrorCode.USER_DELETE_FAILED)
-       
+      throw new AppException(UserErrorCode.USER_DELETE_FAILED); 
     }
 
     const staff = await this.userRepository.findById(id);
-    if (!staff) {
-      throw new AppException(UserErrorCode.USER_NOT_FOUND)
-    }
+    if (!staff) throw new AppException(UserErrorCode.USER_NOT_FOUND);
 
-    if (staff.role !== UserRoles.ADMIN) {
-     
-      throw new AppException(UserErrorCode.USER_DELETE_FAILED)
-    
+    if (staff.role !== UserRoles.ADMIN && staff.role !== UserRoles.STAFF) {
+      throw new AppException(UserErrorCode.USER_DELETE_FAILED);
     }
 
     const deletedResult = await this.userRepository.delete(id);
-    if (!deletedResult) {
-      throw new AppException(UserErrorCode.USER_DELETE_FAILED)
-    }
+    if (!deletedResult) throw new AppException(UserErrorCode.USER_DELETE_FAILED);
   }
-
 }
