@@ -22,29 +22,33 @@ export class RestaurantDetailResponse {
   location: { lat: number; lng: number };
 
   @ApiProperty({ example: '0905123456' })
-  phoneNumber: string;
+  phone: string;
+
+  reviews: string;
+  rating: string;
 
   @ApiProperty({ example: '07:00 - 22:00' })
-  openingHours: string;
+  openTime: string;
 
   @ApiProperty({ example: ['https://cdn.com/res.png'] })
   images: string[];
 
   @ApiProperty({ type: [FoodResponse], description: 'Danh sách chi tiết món ăn' })
-  foods: FoodResponse[];
+  menu: FoodResponse[];
 
   constructor(data: any, lang: string = 'vi') {
     this.id = data._id?.toString() || data.id;
     this.name = data.name?.[lang] || '';
     this.description = data.description?.[lang] || '';
     this.address = data.address?.[lang] || '';
-    this.location = data.location;
-    this.phoneNumber = data.phoneNumber || '';
-    this.openingHours = data.openingHours?.[lang] || '';
+    this.location = { lat: data.location?.lat || 0, lng: data.location?.lng || 0 };
+    this.phone = data.phoneNumber || '';
+    this.openTime = data.openingHours?.[lang] || '';
     this.images = data.images || [];
-
-    this.foods = data.foods && data.foods.length > 0 && typeof data.foods[0] === 'object'
-      ? data.foods.map((food: any) => new FoodResponse(food))
+    this.reviews = "updating..."
+    this.rating = "updating..."
+    this.menu = data.foods && data.foods.length > 0 && typeof data.foods[0] === 'object'
+      ? data.foods.map((food: any) => new FoodResponse(food, lang))
       : [];
   }
 }

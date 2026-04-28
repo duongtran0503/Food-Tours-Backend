@@ -22,6 +22,9 @@ export class RestaurantResponse {
   @ApiProperty({ example: '26 Thái Phiên, Minh An, Hội An' })
   address: string;
 
+  reviews: number;
+  rating: number;
+
   @ApiProperty({ type: LocationResponse })
   location: LocationResponse;
 
@@ -29,7 +32,7 @@ export class RestaurantResponse {
   phoneNumber: string;
 
   @ApiProperty({ example: '07:00 - 22:00' })
-  openingHours: string;
+  openingTime: string;
 
   @ApiProperty({ example: ['https://cdn.com/res.png'] })
   images: string[];
@@ -44,7 +47,9 @@ export class RestaurantResponse {
     this.location = data.location;
     this.description = data.description?.[lang] || '';
     this.phoneNumber = data.phoneNumber || '';
-    this.openingHours = data.openingHours?.[lang] || '';
+    this.rating = 5
+    this.reviews = 100
+    this.openingTime = data.openingHours?.[lang] || '';
     this.images = data.images || [];
     this.foods = data.foods ? data.foods.map((food: string) => food.toString()) : [];
   }
