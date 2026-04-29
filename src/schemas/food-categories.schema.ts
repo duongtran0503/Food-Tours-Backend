@@ -1,6 +1,6 @@
 import { MultiLanguage } from '@/schemas/MultiLanguage';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { HydratedDocument } from 'mongoose';
+import { HydratedDocument, Types } from 'mongoose';
 
 @Schema({ timestamps: true, collection: 'food_categories' })
 export class FoodCategory {
@@ -9,6 +9,10 @@ export class FoodCategory {
 
   @Prop({ required: true, unique: true, trim: true })
   slug: string;
+
+  // Trong các file Schema tương ứng
+@Prop({ type: Types.ObjectId, ref: 'User', required: true })
+owner_id: Types.ObjectId;
 
   @Prop()
   iconUrl: string;
