@@ -35,7 +35,17 @@ export class RestaurantController {
     const userId = req.user.userId;
     return this.restaurantService.createRestaurant(data, userId);
   }
-
+  @Get('merchant/profile')
+  @Roles('merchant') // Đã sửa lại chuẩn quyền 'merchant'
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Lấy thông tin hồ sơ tổng hợp của Merchant (Cá nhân + Cửa hàng)' })
+  async getMerchantProfile(
+    @Req() req: any,
+    @Headers('lang') lang: string = 'vi'
+  ): Promise<any> {
+    const userId = req.user.userId; 
+    return this.restaurantService.getMerchantProfile(userId, lang);
+  }
   @Patch(':id/approve')
   @Roles(UserRoles.ADMIN)
   @ApiBearerAuth()
@@ -49,6 +59,7 @@ export class RestaurantController {
       }
     }
   })
+
   approveRestaurant(
     @Param('id') id: string,
     @Body('status') status: 'approved' | 'rejected',

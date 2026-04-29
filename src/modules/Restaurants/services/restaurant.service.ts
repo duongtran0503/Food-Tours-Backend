@@ -11,11 +11,33 @@ import { RestaurantRepository } from '@/modules/Restaurants/repositories/restaur
 import { RestaurantDocument } from '@/schemas/restaurant.schema';
 import { Injectable } from '@nestjs/common';
 import { QueryFilter } from 'mongoose';
+import { UserRepository } from '@/modules/users/repositories/user.repository';
+import { UserErrorCode } from '@/modules/users/config/user.error.code';
+import { UserProfileResponse } from '@/modules/users/dto/response/user-profile-response';
 
 @Injectable()
 export class RestaurantService {
-  constructor(private readonly restaurantRepository: RestaurantRepository) { }
+  constructor(
+  private readonly restaurantRepository: RestaurantRepository,
+  private readonly userRepository: UserRepository, // Tiêm thêm UserRepository
+) { }
+async getMerchantProfile(userId: string, lang: string = 'vi'): Promise<any> {
+  // Lấy thông tin cá nhân (User)
+  const user = await this.userRepository.findById(userId);
+  if (!user) {
+    throw new AppException(UserErrorCode.USER_NOT_FOUND);
+  }
 
+  // Lấy thông tin cửa hàng dựa trên owner_id
+  const restaurant = await this.restaurantRepository.findOne({ 
+    owner_id: userId as any 
+  });
+
+  return {
+    user: new UserProfileResponse(user), // Trả về thông tin cá nhân
+    restaurant: restaurant ? new RestaurantResponse(restaurant, lang) : null, // Trả về thông tin quán (nếu có)
+  };
+}
   async createRestaurant(data: CreateRestaurantRequest, userId: string): Promise<RestaurantResponse> {
     const existingRestaurant = await this.restaurantRepository.findOne({
       phoneNumber: data.phoneNumber,
