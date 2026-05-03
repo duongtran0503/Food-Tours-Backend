@@ -24,7 +24,7 @@ export class RestaurantController {
   constructor(private readonly restaurantService: RestaurantService) { }
 
   @Post()
-  @Roles(UserRoles.ADMIN, 'merchant') // Đã fix lỗi chữ MERCHANT bằng chuỗi string
+  @Roles(UserRoles.ADMIN, UserRoles.STAFF)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Tạo quán ăn mới (Merchant/Admin)' })
   @ApiResponse({ status: 201, description: 'Tạo thành công', type: RestaurantResponse })

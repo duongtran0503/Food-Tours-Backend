@@ -20,7 +20,7 @@ export class FoodController {
   constructor(private readonly foodService: FoodService) { }
 
   @Post()
-  @Roles(UserRoles.ADMIN, 'merchant')
+  @Roles(UserRoles.ADMIN, UserRoles.STAFF)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Tạo món ăn mới (Admin)' })
   @ApiResponse({ status: 201, description: 'Tạo thành công', type: FoodResponse })
@@ -54,7 +54,7 @@ export class FoodController {
   }
 
   @Patch(':id')
-  @Roles(UserRoles.ADMIN, 'merchant')
+  @Roles(UserRoles.ADMIN, UserRoles.STAFF)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Chỉnh sửa món ăn (Admin/Merchant)' })
   @ApiHeader({ name: 'lang', description: 'Ngôn ngữ hiển thị sau khi cập nhật', required: false })
@@ -68,7 +68,7 @@ export class FoodController {
   }
 
   @Delete(':id')
-  @Roles(UserRoles.ADMIN, 'merchant')
+  @Roles(UserRoles.ADMIN, UserRoles.STAFF)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Xóa món ăn (Admin/Merchant)' })
   @ApiResponse({ status: 200, description: 'Xóa món ăn thành công' })
@@ -81,7 +81,7 @@ export class FoodController {
   }
 
   @Patch(':id/categories')
-  @Roles(UserRoles.ADMIN, 'merchant')
+  @Roles(UserRoles.ADMIN, UserRoles.STAFF)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Cập nhật danh mục cho món ăn (Admin)' })
   addCategory(
@@ -93,7 +93,7 @@ export class FoodController {
   }
 
   @Delete(':id/categories')
-  @Roles(UserRoles.ADMIN, 'merchant')
+  @Roles(UserRoles.ADMIN, UserRoles.STAFF)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Gỡ bỏ danh mục khỏi món ăn (Admin)' })
   removeCategory(

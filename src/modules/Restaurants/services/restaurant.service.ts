@@ -34,8 +34,8 @@ export class RestaurantService {
       description: data.description,
       images: data.images || [],
       foods: data.foods ? data.foods.map((id) => id as any) : [],
-      owner_id: userId,          // Lấy ID của Merchant đang đăng nhập
-      status: 'pending',         // Mặc định tạo ra là chờ duyệt
+      owner_id: userId,
+      status: 'pending',
     } as any);
 
     if (!newRestaurant) {
@@ -45,18 +45,15 @@ export class RestaurantService {
     return new RestaurantResponse(newRestaurant as any, 'vi');
   }
 
-  // 2. Thêm hàm mới: Admin duyệt cửa hàng
   async approveRestaurant(id: string, status: 'approved' | 'rejected', lang: string = 'vi'): Promise<RestaurantResponse> {
     const restaurant = await this.restaurantRepository.findById(id);
     if (!restaurant) {
       throw new AppException(RestaurantErrorCode.RESTAURANT_NOT_FOUND);
     }
-
     const updatedRestaurant = await this.restaurantRepository.update(id, { status } as any);
     if (!updatedRestaurant) {
       throw new AppException(RestaurantErrorCode.RESTAURANT_UPDATE_FAILED);
     }
-
     return new RestaurantResponse(updatedRestaurant as any, lang);
   }
 

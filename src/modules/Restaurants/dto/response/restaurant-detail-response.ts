@@ -36,6 +36,9 @@ export class RestaurantDetailResponse {
   @ApiProperty({ type: [FoodResponse], description: 'Danh sách chi tiết món ăn' })
   menu: FoodResponse[];
 
+  @ApiProperty({ example: 'approved' })
+  status: string;
+
   constructor(data: any, lang: string = 'vi') {
     this.id = data._id?.toString() || data.id;
     this.name = data.name?.[lang] || '';
@@ -45,10 +48,11 @@ export class RestaurantDetailResponse {
     this.phone = data.phoneNumber || '';
     this.openTime = data.openingHours?.[lang] || '';
     this.images = data.images || [];
-    this.reviews = "updating..."
-    this.rating = "updating..."
+    this.reviews = "updating...";
+    this.rating = "updating...";
     this.menu = data.foods && data.foods.length > 0 && typeof data.foods[0] === 'object'
       ? data.foods.map((food: any) => new FoodResponse(food, lang))
       : [];
+    this.status = data.status || 'pending';
   }
 }
