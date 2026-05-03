@@ -149,4 +149,20 @@ export class RestaurantController {
   ): Promise<RestaurantResponse> {
     return this.restaurantService.removeFoodsFromRestaurant(restaurantId, data, lang);
   }
+
+  @Get('my-restaurant')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('merchant') 
+  async getMyRestaurant(
+    @Req() req: any,
+    @Headers('accept-language') lang: string = 'vi'
+  ) {
+    const userId = req.user.id || req.user._id; 
+    const data = await this.restaurantService.findMyRestaurant(userId, lang);
+    return {
+      statusCode: 200,
+      message: 'Lấy thông tin cửa hàng thành công',
+      data: data
+    };
+  }
 }
