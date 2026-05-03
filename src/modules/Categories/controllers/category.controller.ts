@@ -12,15 +12,15 @@ import { UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '@/common/guards/jwt-auth.guard';
 import { RolesGuard } from '@/common/guards/roles.guard';
 
-@ApiTags('Categories') // Gom nhóm module Categories trên UI
+@ApiTags('Categories')
 @Controller("categories")
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class CategoryController {
   constructor(private readonly categoriesService: CategoriesService) { }
 
   @Post()
-  @Roles(UserRoles.ADMIN, 'merchant')
-  @ApiBearerAuth() // Đánh dấu API cần token Admin
+  @Roles(UserRoles.STAFF)
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Tạo danh mục món ăn mới (Admin)' })
   @ApiResponse({ status: 201, description: 'Tạo thành công', type: CategoryResponse })
   @ApiResponse({ status: 400, description: 'Lỗi trùng lặp Slug / Dữ liệu không hợp lệ' })
@@ -66,7 +66,7 @@ export class CategoryController {
   // Các hàm create, update cũng thêm @Headers('lang') tương tự để trả về Response đúng tiếng
 
   @Patch(':id')
-  @Roles(UserRoles.ADMIN, 'merchant')
+  @Roles(UserRoles.STAFF)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Chỉnh sửa danh mục món ăn (Admin)' })
   @ApiResponse({ status: 200, description: 'Cập nhật thành công', type: CategoryResponse })
@@ -79,7 +79,7 @@ export class CategoryController {
   }
 
   @Delete(':id')
-  @Roles(UserRoles.ADMIN, 'merchant')
+  @Roles(UserRoles.ADMIN, UserRoles.STAFF)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Xóa danh mục (Admin)' })
   @ApiResponse({
