@@ -49,9 +49,13 @@ export class RestaurantResponse {
     this.address = data.address?.[lang] || data.address?.vi || '';
     this.description = data.description?.[lang] || data.description?.vi || '';
     this.openingTime = data.openingHours?.[lang] || data.openingHours?.vi || '';
-    this.rating = 5;
-    this.reviews = 100;
-    this.openingTime = data.openingHours?.[lang] || '';
+    this.phoneNumber = data.phoneNumber || '';
+    if (data.location) {
+      this.location = {
+        lat: data.location.lat,
+        lng: data.location.lng
+      };
+    }
     this.images = data.images || [];
     this.foods = data.foods ? data.foods.map((food: string) => food.toString()) : [];
     this.status = data.status || 'pending';
