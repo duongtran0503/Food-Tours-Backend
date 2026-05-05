@@ -6,18 +6,22 @@ import { HydratedDocument, Types } from 'mongoose';
 
 @Schema({ timestamps: true, collection: 'restaurants' })
 export class Restaurant {
-  @Prop({ type: Object, required: true })
+  // 1. Tên quán đa ngôn ngữ
+  @Prop({ type: MultiLanguage, required: true })
   name: MultiLanguage;
 
-  @Prop({ type: Object, required: true })
+  // 2. Địa chỉ đa ngôn ngữ
+  @Prop({ type: MultiLanguage, required: true })
   address: MultiLanguage;
 
-  @Prop({ type: Object, required: true })
+  @Prop({ type: MultiLanguage, required: true })
   description: MultiLanguage;
 
+  // Ai là người tạo/sở hữu quán ăn này?
   @Prop({ type: Types.ObjectId, ref: 'User', required: true })
   owner_id: Types.ObjectId;
 
+  // Trạng thái phê duyệt của Admin
   @Prop({ type: String, enum: ['pending', 'approved', 'rejected'], default: 'pending' })
   status: string;
   
@@ -33,7 +37,8 @@ export class Restaurant {
   @Prop({ required: true, unique: true })
   phoneNumber: string;
 
-  @Prop({ type: Object, required: true })
+  // 3. Giờ mở cửa đa ngôn ngữ (Đề phòng có các ghi chú như "Chủ nhật đóng cửa")
+  @Prop({ type: MultiLanguage, required: true })
   openingHours: MultiLanguage;
 
   @Prop({ default: [] })

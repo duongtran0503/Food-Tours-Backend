@@ -24,7 +24,7 @@ export class RestaurantController {
   constructor(private readonly restaurantService: RestaurantService) { }
 
   @Post()
-  @Roles(UserRoles.ADMIN, UserRoles.STAFF)
+  @Roles(UserRoles.ADMIN, 'merchant') // Đã fix lỗi chữ MERCHANT bằng chuỗi string
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Tạo quán ăn mới (Merchant/Admin)' })
   @ApiResponse({ status: 201, description: 'Tạo thành công', type: RestaurantResponse })
@@ -159,21 +159,5 @@ export class RestaurantController {
     @Headers('lang') lang: string = 'vi'
   ): Promise<RestaurantResponse> {
     return this.restaurantService.removeFoodsFromRestaurant(restaurantId, data, lang);
-  }
-
-  @Get('my-restaurant')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('merchant') 
-  async getMyRestaurant(
-    @Req() req: any,
-    @Headers('accept-language') lang: string = 'vi'
-  ) {
-    const userId = req.user.id || req.user._id; 
-    const data = await this.restaurantService.findMyRestaurant(userId, lang);
-    return {
-      statusCode: 200,
-      message: 'Lấy thông tin cửa hàng thành công',
-      data: data
-    };
   }
 }

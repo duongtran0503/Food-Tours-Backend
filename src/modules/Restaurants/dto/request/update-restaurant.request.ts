@@ -5,33 +5,33 @@ import { UpdateLocationDto } from '@/modules/Restaurants/dto/request/location.dt
 import { MultiLanguage } from '@/schemas/MultiLanguage';
 
 export class UpdateRestaurantRequest {
-  @ApiPropertyOptional({ type: MultiLanguage })
-  @IsOptional()
+  @ApiProperty({ example: { vi: 'Quán Cao lầu Thanh', en: 'Thanh Cao Lau Restaurant' } })
   @IsObject()
   @ValidateNested()
   @Type(() => MultiLanguage)
-  name?: MultiLanguage;
+  name: MultiLanguage;
 
-  @ApiPropertyOptional({ type: MultiLanguage })
-  @IsOptional()
+  @ApiProperty({ example: { vi: '26 Thái Phiên, Hội An', en: '26 Thai Phien, Hoi An' } })
   @IsObject()
   @ValidateNested()
   @Type(() => MultiLanguage)
-  address?: MultiLanguage;
+  address: MultiLanguage;
 
-  @ApiPropertyOptional({ type: MultiLanguage })
-  @IsOptional()
-  @IsObject()
-  @ValidateNested()
-  @Type(() => MultiLanguage)
-  description?: MultiLanguage;
-
-  @ApiPropertyOptional({ type: MultiLanguage })
+  @ApiPropertyOptional({ example: { vi: '07:00 - 22:00', en: '7 AM - 10 PM' } })
   @IsOptional()
   @IsObject()
   @ValidateNested()
   @Type(() => MultiLanguage)
   openingHours?: MultiLanguage;
+
+
+  @ApiPropertyOptional({
+    example: { vi: 'Bánh mì đặc sản với pate và bơ béo ngậy', en: 'Special banh mi with pate and butter' }
+  })
+  @IsObject()
+  @ValidateNested()
+  @Type(() => MultiLanguage)
+  description: MultiLanguage;
 
   @ApiPropertyOptional({ type: UpdateLocationDto })
   @IsOptional()
@@ -44,6 +44,8 @@ export class UpdateRestaurantRequest {
   @IsOptional()
   @IsString()
   phoneNumber?: string;
+
+
 
   @ApiPropertyOptional({ example: ['https://new-image.png'] })
   @IsOptional()
