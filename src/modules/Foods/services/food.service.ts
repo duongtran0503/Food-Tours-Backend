@@ -38,8 +38,8 @@ export class FoodService {
     return this.queryFoods({ status: FoodStatus.AVAILABLE }, query, lang);
   }
 
-  // Của riêng tôi (Merchant)
-  async findAllMerchantFoods(userId: string, query: GetFoodsQueryRequest, lang: string = 'vi') {
+  // Của riêng tôi (Staff)
+  async findAllStaffFoods(userId: string, query: GetFoodsQueryRequest, lang: string = 'vi') {
     return this.queryFoods({ owner_id: userId }, query, lang);
   }
 

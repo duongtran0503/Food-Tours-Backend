@@ -24,9 +24,9 @@ export class RestaurantController {
   constructor(private readonly restaurantService: RestaurantService) { }
 
   @Post()
-  @Roles(UserRoles.ADMIN, 'merchant') // Đã fix lỗi chữ MERCHANT bằng chuỗi string
+  @Roles(UserRoles.ADMIN, UserRoles.STAFF) // Đã fix lỗi chữ MERCHANT bằng chuỗi string
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Tạo quán ăn mới (Merchant/Admin)' })
+  @ApiOperation({ summary: 'Tạo quán ăn mới (Staff/Admin)' })
   @ApiResponse({ status: 201, description: 'Tạo thành công', type: RestaurantResponse })
   createRestaurant(
     @Body() data: CreateRestaurantRequest,
@@ -35,16 +35,16 @@ export class RestaurantController {
     const userId = req.user.userId;
     return this.restaurantService.createRestaurant(data, userId);
   }
-  @Get('merchant/profile')
-  @Roles('merchant') // Đã sửa lại chuẩn quyền 'merchant'
+  @Get('staff/profile')
+  @Roles('staff') // Đã sửa lại chuẩn quyền 'staff'
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Lấy thông tin hồ sơ tổng hợp của Merchant (Cá nhân + Cửa hàng)' })
-  async getMerchantProfile(
+  @ApiOperation({ summary: 'Lấy thông tin hồ sơ tổng hợp của Staff (Cá nhân + Cửa hàng)' })
+  async getStaffProfile(
     @Req() req: any,
     @Headers('lang') lang: string = 'vi'
   ): Promise<any> {
     const userId = req.user.userId; 
-    return this.restaurantService.getMerchantProfile(userId, lang);
+    return this.restaurantService.getStaffProfile(userId, lang);
   }
   @Patch(':id/approve')
   @Roles(UserRoles.ADMIN)

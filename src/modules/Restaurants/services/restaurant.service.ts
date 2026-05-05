@@ -21,7 +21,7 @@ export class RestaurantService {
   private readonly restaurantRepository: RestaurantRepository,
   private readonly userRepository: UserRepository, // Tiêm thêm UserRepository
 ) { }
-async getMerchantProfile(userId: string, lang: string = 'vi'): Promise<any> {
+async getStaffProfile(userId: string, lang: string = 'vi'): Promise<any> {
   // Lấy thông tin cá nhân (User)
   const user = await this.userRepository.findById(userId);
   if (!user) {
@@ -56,7 +56,7 @@ async getMerchantProfile(userId: string, lang: string = 'vi'): Promise<any> {
       description: data.description,
       images: data.images || [],
       foods: data.foods ? data.foods.map((id) => id as any) : [],
-      owner_id: userId,          // Lấy ID của Merchant đang đăng nhập
+      owner_id: userId,          // Lấy ID của Staff đang đăng nhập
       status: 'pending',         // Mặc định tạo ra là chờ duyệt
     } as any);
 

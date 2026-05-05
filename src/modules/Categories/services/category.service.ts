@@ -29,8 +29,8 @@ export class CategoriesService {
     return this.queryCategories({}, query, lang);
   }
 
-  // Xem danh mục của riêng tôi (Merchant)
-  async findAllMerchantCategories(userId: string, query: GetCategoriesQueryRequest, lang: string) {
+  // Xem danh mục của riêng tôi (Staff)
+  async findAllStaffCategories(userId: string, query: GetCategoriesQueryRequest, lang: string) {
     return this.queryCategories({ owner_id: userId }, query, lang);
   }
 

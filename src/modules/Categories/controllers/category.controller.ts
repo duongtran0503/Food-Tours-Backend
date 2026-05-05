@@ -20,20 +20,20 @@ export class CategoryController {
   @Post()
   @Roles(UserRoles.ADMIN, UserRoles.STAFF) // Đã chuẩn hóa role
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Tạo danh mục món ăn mới (Admin/Merchant)' })
+  @ApiOperation({ summary: 'Tạo danh mục món ăn mới (Admin/Staff)' })
   @ApiResponse({ status: 201, description: 'Tạo thành công', type: CategoryResponse })
   @ApiResponse({ status: 400, description: 'Lỗi trùng lặp Slug / Dữ liệu không hợp lệ' })
   create(@Body() data: CreateCategoryRequest, @Req() req: any) {
     return this.categoriesService.createCategory(data, req.user.userId);
   }
 
-  // 👇 API MỚI: Dành cho Merchant lấy danh mục của riêng mình
+  // 👇 API MỚI: Dành cho Staff lấy danh mục của riêng mình
   @Get('me')
   @Roles(UserRoles.ADMIN, UserRoles.STAFF)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Xem danh mục của tôi (Merchant)' })
+  @ApiOperation({ summary: 'Xem danh mục của tôi (Staff)' })
   getMyCategories(@Query() query: GetCategoriesQueryRequest, @Req() req: any, @Headers('lang') lang: string = 'vi') {
-    return this.categoriesService.findAllMerchantCategories(req.user.userId, query, lang);
+    return this.categoriesService.findAllStaffCategories(req.user.userId, query, lang);
   } // 👈 Đã bổ sung dấu đóng ngoặc bị thiếu
 
   @Public()
@@ -46,15 +46,15 @@ export class CategoryController {
   @Patch(':id')
   @Roles(UserRoles.ADMIN, UserRoles.STAFF)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Chỉnh sửa danh mục món ăn (Admin/Merchant)' })
+  @ApiOperation({ summary: 'Chỉnh sửa danh mục món ăn (Admin/Staff)' })
   updateCategory(@Param('id') id: string, @Body() data: UpdateCategoryRequest, @Req() req: any): Promise<CategoryResponse> {
     return this.categoriesService.updateCategory(id, data, 'vi', req.user.userId, req.user.role);
   }
 
   @Delete(':id')
-  @Roles(UserRoles.ADMIN, 'merchant')
+  @Roles(UserRoles.ADMIN, UserRoles.STAFF)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Xóa danh mục (Admin/Merchant)' })
+  @ApiOperation({ summary: 'Xóa danh mục (Admin/Staff)' })
   async deleteCategory(@Param('id') id: string, @Req() req: any) {
     await this.categoriesService.deleteCategory(id, req.user.userId, req.user.role);
     return { deleteItemId: id };
