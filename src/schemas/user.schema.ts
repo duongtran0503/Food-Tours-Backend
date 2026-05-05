@@ -16,13 +16,13 @@ export enum UserRoles {
 
 @Schema({ timestamps: true, collection: 'users' })
 export class User {
-  @Prop({ required: true, unique: true, lowercase: true, trim: true }) 
+  @Prop({ required: true, unique: true, lowercase: true, trim: true })
   email: string;
 
   @Prop({ required: true, select: false })
   password_hash: string;
 
-  @Prop({ required: true, trim: true }) 
+  @Prop({ required: true, trim: true })
   fullName: string;
 
   @Prop({ trim: true })
@@ -31,15 +31,15 @@ export class User {
   @Prop({ default: UserRoles.USER, type: String, enum: Object.values(UserRoles) })
   role: UserRoles;
 
-  @Prop({ 
-    type: String, 
-    default: UserStatus.ACTIVE, 
-    enum: Object.values(UserStatus) 
+  @Prop({
+    type: String,
+    default: UserStatus.ACTIVE,
+    enum: Object.values(UserStatus)
   })
   status: UserStatus;
 
   @Prop({ default: 'https://www.gravatar.com/avatar/?d=mp' })
-  avatar?: string;
+  avatar: string;
 
   createdAt?: Date;
   updatedAt?: Date;

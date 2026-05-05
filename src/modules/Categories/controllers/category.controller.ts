@@ -18,21 +18,23 @@ export class CategoryController {
   constructor(private readonly categoriesService: CategoriesService) { }
 
   @Post()
-  @Roles(UserRoles.ADMIN, 'merchant')
+  @Roles(UserRoles.ADMIN, UserRoles.STAFF) // Đã chuẩn hóa role
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Tạo danh mục món ăn mới (Admin/Merchant)' })
+  @ApiResponse({ status: 201, description: 'Tạo thành công', type: CategoryResponse })
+  @ApiResponse({ status: 400, description: 'Lỗi trùng lặp Slug / Dữ liệu không hợp lệ' })
   create(@Body() data: CreateCategoryRequest, @Req() req: any) {
     return this.categoriesService.createCategory(data, req.user.userId);
   }
 
   // 👇 API MỚI: Dành cho Merchant lấy danh mục của riêng mình
   @Get('me')
-  @Roles(UserRoles.ADMIN, 'merchant')
+  @Roles(UserRoles.ADMIN, UserRoles.STAFF)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Xem danh mục của tôi (Merchant)' })
   getMyCategories(@Query() query: GetCategoriesQueryRequest, @Req() req: any, @Headers('lang') lang: string = 'vi') {
     return this.categoriesService.findAllMerchantCategories(req.user.userId, query, lang);
-  }
+  } // 👈 Đã bổ sung dấu đóng ngoặc bị thiếu
 
   @Public()
   @Get()
@@ -42,7 +44,7 @@ export class CategoryController {
   }
 
   @Patch(':id')
-  @Roles(UserRoles.ADMIN, 'merchant')
+  @Roles(UserRoles.ADMIN, UserRoles.STAFF)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Chỉnh sửa danh mục món ăn (Admin/Merchant)' })
   updateCategory(@Param('id') id: string, @Body() data: UpdateCategoryRequest, @Req() req: any): Promise<CategoryResponse> {
@@ -50,7 +52,7 @@ export class CategoryController {
   }
 
   @Delete(':id')
-  @Roles(UserRoles.ADMIN, 'merchant')
+  @Roles(UserRoles.ADMIN, UserRoles.STAFF)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Xóa danh mục (Admin/Merchant)' })
   async deleteCategory(@Param('id') id: string, @Req() req: any) {

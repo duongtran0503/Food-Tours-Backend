@@ -19,7 +19,7 @@ export class FoodController {
   constructor(private readonly foodService: FoodService) { }
 
   @Post()
-  @Roles(UserRoles.ADMIN, 'merchant')
+  @Roles(UserRoles.ADMIN, UserRoles.STAFF)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Tạo món ăn mới (Admin/Merchant)' })
   createFood(@Body() data: CreateFoodRequest, @Req() req: any): Promise<FoodResponse> {
@@ -50,7 +50,7 @@ export class FoodController {
   }
 
   @Patch(':id')
-  @Roles(UserRoles.ADMIN, 'merchant')
+  @Roles(UserRoles.ADMIN, UserRoles.STAFF)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Chỉnh sửa món ăn (Admin/Merchant)' })
   async updateFood(@Param('id') id: string, @Body() data: UpdateFoodRequest, @Req() req: any, @Headers('lang') lang: string = 'vi'): Promise<FoodResponse> {
@@ -58,7 +58,7 @@ export class FoodController {
   }
 
   @Delete(':id')
-  @Roles(UserRoles.ADMIN, 'merchant')
+  @Roles(UserRoles.ADMIN, UserRoles.STAFF)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Xóa món ăn (Admin/Merchant)' })
   async deleteFood(@Param('id') id: string, @Req() req: any) {
@@ -67,7 +67,7 @@ export class FoodController {
   }
 
   @Patch(':id/categories')
-  @Roles(UserRoles.ADMIN, 'merchant')
+  @Roles(UserRoles.ADMIN, UserRoles.STAFF)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Cập nhật danh mục cho món ăn (Admin/Merchant)' })
   addCategory(@Param('id') foodId: string, @Body() data: ActionCategoryFoodRequest, @Req() req: any, @Headers('lang') lang: string = 'vi'): Promise<FoodResponse> {
@@ -75,7 +75,7 @@ export class FoodController {
   }
 
   @Delete(':id/categories')
-  @Roles(UserRoles.ADMIN, 'merchant')
+  @Roles(UserRoles.ADMIN, UserRoles.STAFF)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Gỡ bỏ danh mục khỏi món ăn (Admin/Merchant)' })
   removeCategory(@Param('id') foodId: string, @Req() req: any, @Headers('lang') lang: string = 'vi'): Promise<FoodResponse> {
