@@ -52,7 +52,7 @@ export class CategoryController {
   }
 
   @Delete(':id')
-  @Roles(UserRoles.ADMIN, UserRoles.STAFF)
+  @Roles(UserRoles.ADMIN, 'merchant')
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Xóa danh mục (Admin/Merchant)' })
   async deleteCategory(@Param('id') id: string, @Req() req: any) {
