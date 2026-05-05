@@ -56,8 +56,8 @@ async getMerchantProfile(userId: string, lang: string = 'vi'): Promise<any> {
       description: data.description,
       images: data.images || [],
       foods: data.foods ? data.foods.map((id) => id as any) : [],
-      owner_id: userId,          // Lấy ID của Merchant đang đăng nhập
-      status: 'pending',         // Mặc định tạo ra là chờ duyệt
+      owner_id: userId,
+      status: 'pending',
     } as any);
 
     if (!newRestaurant) {
@@ -67,18 +67,15 @@ async getMerchantProfile(userId: string, lang: string = 'vi'): Promise<any> {
     return new RestaurantResponse(newRestaurant as any, 'vi');
   }
 
-  // 2. Thêm hàm mới: Admin duyệt cửa hàng
   async approveRestaurant(id: string, status: 'approved' | 'rejected', lang: string = 'vi'): Promise<RestaurantResponse> {
     const restaurant = await this.restaurantRepository.findById(id);
     if (!restaurant) {
       throw new AppException(RestaurantErrorCode.RESTAURANT_NOT_FOUND);
     }
-
     const updatedRestaurant = await this.restaurantRepository.update(id, { status } as any);
     if (!updatedRestaurant) {
       throw new AppException(RestaurantErrorCode.RESTAURANT_UPDATE_FAILED);
     }
-
     return new RestaurantResponse(updatedRestaurant as any, lang);
   }
 
@@ -249,5 +246,24 @@ async getMerchantProfile(userId: string, lang: string = 'vi'): Promise<any> {
     }
 
     return new RestaurantResponse(updatedRestaurant as any, lang);
+  }
+
+  async findMyRestaurant(userId: string, lang: string = 'vi'): Promise<RestaurantDetailResponse> {
+    const restaurantModel = this.restaurantRepository.getModel();
+
+    // Tìm quán ăn có owner_id trùng với userId truyền vào
+    const restaurant = await restaurantModel
+      .findOne({ owner_id: new Types.ObjectId(userId) })
+      .populate('foods') // Lấy luôn danh sách món ăn nếu cần hiển thị
+      .lean()
+      .exec();
+
+    // NẾU KHÔNG TÌM THẤY: Bắn ra lỗi 404. 
+    // Ở Frontend, khi catch được lỗi 404 này sẽ hiển thị giao diện "Đăng ký cửa hàng"
+    if (!restaurant) {
+      throw new AppException(RestaurantErrorCode.RESTAURANT_NOT_FOUND);
+    }
+
+    return new RestaurantDetailResponse(restaurant as any, lang);
   }
 }

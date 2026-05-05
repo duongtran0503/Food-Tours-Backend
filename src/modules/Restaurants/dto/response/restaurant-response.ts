@@ -40,17 +40,24 @@ export class RestaurantResponse {
   @ApiProperty({ example: ['65fc34e45d4f3b0012abcd45'] })
   foods: string[];
 
+  @ApiProperty({ example: 'approved' })
+  status: string;
+
   constructor(data: any, lang: string = 'vi') {
     this.id = data._id?.toString() || data.id;
-    this.name = data.name?.[lang] || '';
-    this.address = data.address?.[lang] || '';
-    this.location = data.location;
-    this.description = data.description?.[lang] || '';
+    this.name = data.name?.[lang] || data.name?.vi || '';
+    this.address = data.address?.[lang] || data.address?.vi || '';
+    this.description = data.description?.[lang] || data.description?.vi || '';
+    this.openingTime = data.openingHours?.[lang] || data.openingHours?.vi || '';
     this.phoneNumber = data.phoneNumber || '';
-    this.rating = 5
-    this.reviews = 100
-    this.openingTime = data.openingHours?.[lang] || '';
+    if (data.location) {
+      this.location = {
+        lat: data.location.lat,
+        lng: data.location.lng
+      };
+    }
     this.images = data.images || [];
     this.foods = data.foods ? data.foods.map((food: string) => food.toString()) : [];
+    this.status = data.status || 'pending';
   }
 }

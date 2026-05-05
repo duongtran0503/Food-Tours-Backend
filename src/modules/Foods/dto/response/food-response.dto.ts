@@ -17,8 +17,14 @@ export class FoodResponse {
   @ApiProperty({ example: 'Bánh Mì Hội An' })
   name: string;
 
-  @ApiProperty({ example: 'Bánh Mì Hội An' })
+  @ApiProperty({ example: { vi: 'Bánh Mì Hội An', en: 'Hoi An Bread', jp: 'バインミー' } })
+  nameRaw: any; 
+
+  @ApiProperty({ example: 'Bánh mì đặc sản với pate và bơ' })
   description: string;
+
+  @ApiProperty({ example: { vi: 'Mô tả tiếng Việt', en: 'English description', jp: '日本語の説明' } })
+  descriptionRaw: any;
 
   @ApiProperty({ example: 'banh-mi-hoi-an' })
   slug: string;
@@ -39,6 +45,8 @@ export class FoodResponse {
     this.id = data._id?.toString() || data.id;
     this.name = data.dishName?.[lang] || data.dishName?.vi || '';
     this.description = data.description?.[lang] || data.description?.vi || '';
+    this.nameRaw = data.dishName || {};
+    this.descriptionRaw = data.description || {};
     this.slug = data.slug;
     this.categoryId = data.category?.toString();
     this.images = data.images || [];

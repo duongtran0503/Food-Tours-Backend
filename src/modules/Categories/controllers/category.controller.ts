@@ -42,7 +42,7 @@ export class CategoryController {
   }
 
   @Patch(':id')
-  @Roles(UserRoles.ADMIN, 'merchant')
+  @Roles(UserRoles.STAFF)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Chỉnh sửa danh mục món ăn (Admin/Merchant)' })
   updateCategory(@Param('id') id: string, @Body() data: UpdateCategoryRequest, @Req() req: any): Promise<CategoryResponse> {
@@ -50,7 +50,7 @@ export class CategoryController {
   }
 
   @Delete(':id')
-  @Roles(UserRoles.ADMIN, 'merchant')
+  @Roles(UserRoles.ADMIN, UserRoles.STAFF)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Xóa danh mục (Admin/Merchant)' })
   async deleteCategory(@Param('id') id: string, @Req() req: any) {
