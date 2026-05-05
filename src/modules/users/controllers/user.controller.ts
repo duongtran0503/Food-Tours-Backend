@@ -8,25 +8,27 @@ import { UpdateUserRequest } from "../dto/request/update-user.request";
 import { GetUsersQueryRequest } from "../dto/request/get-users-query.request";
 import { UserRoles } from "@/schemas/user.schema";
 import { Roles } from "@/common/decorator/roles.decorator";
+import { UpdateUserProfileRequest } from "@/modules/users/dto/request/update-user-profile-request";
 
 @ApiTags('Users')
 @ApiBearerAuth()
 @Controller('users')
 export class UserController {
 
-    constructor(private readonly userService: UserService) {}
+    constructor(private readonly userService: UserService) { }
     @Get("/profile")
     @ApiOperation({ summary: 'Xem thông tin trang cá nhân của tôi (Dùng JWT Token)' })
-    @ApiResponse({ 
-      status: 200, 
-      description: 'Lấy thông tin profile thành công', 
-      type: UserProfileResponse 
+    @ApiResponse({
+        status: 200,
+        description: 'Lấy thông tin profile thành công',
+        type: UserProfileResponse
     })
     @ApiResponse({ status: 401, description: 'Token không hợp lệ hoặc hết hạn' })
     getProfile(@CurrentUser() user: ICurrentUser): Promise<UserProfileResponse> {
+
         return this.userService.getProfile(user.userId);
     }
-    
+
     @Post()
     @Roles(UserRoles.ADMIN)
     @ApiOperation({ summary: 'Tạo tài khoản User mới' })
@@ -48,7 +50,7 @@ export class UserController {
     @ApiOperation({ summary: 'Xem chi tiết 1 người dùng theo ID' })
     @ApiResponse({ status: 200, type: UserProfileResponse })
     findOne(@Param('id') id: string) {
-        return this.userService.getProfile(id); 
+        return this.userService.getProfile(id);
     }
 
     @Patch('/:id')
@@ -56,7 +58,7 @@ export class UserController {
     @ApiOperation({ summary: 'Cập nhật thông tin người dùng' })
     @ApiResponse({ status: 200, type: UserProfileResponse })
     update(
-        @Param('id') id: string, 
+        @Param('id') id: string,
         @Body() data: UpdateUserRequest
     ) {
         return this.userService.updateUser(id, data);
@@ -68,5 +70,20 @@ export class UserController {
     @ApiResponse({ status: 200, description: 'Xóa thành công' })
     remove(@Param('id') id: string) {
         return this.userService.deleteUser(id);
+    }
+
+    @Patch('/update/profile')
+    @ApiOperation({ summary: 'Cập nhật thông tin cá nhân' })
+    @Roles(UserRoles.USER)
+    @ApiResponse({ status: 200, type: UserProfileResponse })
+    updateProfile(
+        @CurrentUser() user: ICurrentUser,
+        @Body() updateDto: UpdateUserProfileRequest
+    ) {
+        console.log('User ID from token:', user.userId);
+        console.log('Update DTO:', updateDto);
+
+        const userId = user.userId;
+        return this.userService.updateProfile(userId, updateDto);
     }
 }

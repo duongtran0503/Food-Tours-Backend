@@ -29,6 +29,7 @@ export class UserSeeder implements Seeder {
       fullName: 'Quản trị viên Hệ thống',
       role: UserRoles.ADMIN,
       status: UserStatus.ACTIVE,
+      avatar: 'https://www.gravatar.com/avatar/?d=mp'
 
     };
 
