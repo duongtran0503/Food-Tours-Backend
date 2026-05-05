@@ -7,22 +7,23 @@ import { CreateUserRequest } from '../dto/request/create-user.request';
 import { UpdateUserRequest } from '../dto/request/update-user.request';
 import { GetUsersQueryRequest } from '../dto/request/get-users-query.request';
 import * as bcrypt from 'bcrypt';
+import { UpdateUserProfileRequest } from '@/modules/users/dto/request/update-user-profile-request';
 
 @Injectable()
 export class UserService {
-  constructor(private readonly userRepository: UserRepository) {}
+  constructor(private readonly userRepository: UserRepository) { }
 
   async getProfile(userId: string) {
     const user = await this.userRepository.findOne({ _id: userId });
     if (!user) throw new AppException(UserErrorCode.USER_NOT_FOUND);
-    
+
     return new UserProfileResponse(user);
   }
 
   async createUser(data: CreateUserRequest) {
     const existingUser = await this.userRepository.findOne({ email: data.email });
     if (existingUser) {
-      throw new AppException(UserErrorCode.EMAIL_ALREADY_EXISTS); 
+      throw new AppException(UserErrorCode.EMAIL_ALREADY_EXISTS);
     }
     const { password, ...restData } = data;
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -63,18 +64,37 @@ export class UserService {
       },
     };
   }
+  async updateProfile(userId: string, data: UpdateUserProfileRequest): Promise<UserProfileResponse> {
+    const updatedUser = await this.userRepository.findByIdAndUpdate(
+      userId,
+      {
+        $set: {
+          fullName: data.fullName,
+          phoneNumber: data.phoneNumber,
+          avatar: data.avatar,
+        }
+      },
+      { new: true, }
+    )
 
+
+    if (!updatedUser) {
+      throw new AppException(UserErrorCode.USER_NOT_FOUND);
+    }
+
+    return new UserProfileResponse(updatedUser);
+  }
   async updateUser(userId: string, data: UpdateUserRequest) {
-    await this.getProfile(userId); 
+    await this.getProfile(userId);
 
     const updateData = { ...data };
-    
+
     if (data.password) {
       updateData.password = await bcrypt.hash(data.password, 10);
     }
 
     const updatedUser = await this.userRepository.findByIdAndUpdate(userId, updateData, { new: true });
-    
+
     return new UserProfileResponse(updatedUser);
   }
 
@@ -82,7 +102,7 @@ export class UserService {
     await this.getProfile(userId);
 
     await this.userRepository.findByIdAndDelete(userId);
-    
+
     return { deleteItemId: userId };
   }
 }

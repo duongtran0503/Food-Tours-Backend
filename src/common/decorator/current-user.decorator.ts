@@ -3,7 +3,7 @@ import { createParamDecorator, ExecutionContext, UnauthorizedException } from '@
 export interface ICurrentUser {
   userId: string;
   email: string;
-  role: 'ADMIN' | 'CUSTOMER';
+  role: 'ADMIN' | 'CUSTOMER' | 'STAFF';
 }
 
 export const CurrentUser = createParamDecorator(
@@ -16,6 +16,6 @@ export const CurrentUser = createParamDecorator(
       throw new UnauthorizedException('Bạn cần đăng nhập để thực hiện hành động này!');
     }
 
-    return data ? user[data] : user; 
+    return data ? user[data] : user;
   },
 );
