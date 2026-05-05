@@ -10,13 +10,13 @@ import { RestaurantResponse } from '@/modules/Restaurants/dto/response/restauran
 import { RestaurantRepository } from '@/modules/Restaurants/repositories/restaurant.repository';
 import { RestaurantDocument } from '@/schemas/restaurant.schema';
 import { Injectable } from '@nestjs/common';
-import { QueryFilter } from 'mongoose';
+import { QueryFilter, Types } from 'mongoose';
 
 @Injectable()
 export class RestaurantService {
   constructor(private readonly restaurantRepository: RestaurantRepository) { }
 
-  async createRestaurant(data: CreateRestaurantRequest): Promise<RestaurantResponse> {
+  async createRestaurant(data: CreateRestaurantRequest, userId: string): Promise<RestaurantResponse> {
     const existingRestaurant = await this.restaurantRepository.findOne({
       phoneNumber: data.phoneNumber,
     });
@@ -25,7 +25,6 @@ export class RestaurantService {
       throw new AppException(RestaurantErrorCode.PHONE_RESTAURANT_EXISTED);
     }
 
-    // FIX: data.name, address... lúc này đã là Object MultiLanguage từ DTO mới
     const newRestaurant = await this.restaurantRepository.create({
       name: data.name,
       address: data.address,
@@ -35,13 +34,27 @@ export class RestaurantService {
       description: data.description,
       images: data.images || [],
       foods: data.foods ? data.foods.map((id) => id as any) : [],
-    });
+      owner_id: userId,
+      status: 'pending',
+    } as any);
 
     if (!newRestaurant) {
       throw new AppException(RestaurantErrorCode.RESTAURANT_CREATE_FAILED);
     }
 
-    return new RestaurantResponse(newRestaurant, 'vi');
+    return new RestaurantResponse(newRestaurant as any, 'vi');
+  }
+
+  async approveRestaurant(id: string, status: 'approved' | 'rejected', lang: string = 'vi'): Promise<RestaurantResponse> {
+    const restaurant = await this.restaurantRepository.findById(id);
+    if (!restaurant) {
+      throw new AppException(RestaurantErrorCode.RESTAURANT_NOT_FOUND);
+    }
+    const updatedRestaurant = await this.restaurantRepository.update(id, { status } as any);
+    if (!updatedRestaurant) {
+      throw new AppException(RestaurantErrorCode.RESTAURANT_UPDATE_FAILED);
+    }
+    return new RestaurantResponse(updatedRestaurant as any, lang);
   }
 
   async findAllPublicRestaurants(query: GetRestaurantsQueryRequest, lang: string = 'vi') {
@@ -211,5 +224,24 @@ export class RestaurantService {
     }
 
     return new RestaurantResponse(updatedRestaurant as any, lang);
+  }
+
+  async findMyRestaurant(userId: string, lang: string = 'vi'): Promise<RestaurantDetailResponse> {
+    const restaurantModel = this.restaurantRepository.getModel();
+
+    // Tìm quán ăn có owner_id trùng với userId truyền vào
+    const restaurant = await restaurantModel
+      .findOne({ owner_id: new Types.ObjectId(userId) })
+      .populate('foods') // Lấy luôn danh sách món ăn nếu cần hiển thị
+      .lean()
+      .exec();
+
+    // NẾU KHÔNG TÌM THẤY: Bắn ra lỗi 404. 
+    // Ở Frontend, khi catch được lỗi 404 này sẽ hiển thị giao diện "Đăng ký cửa hàng"
+    if (!restaurant) {
+      throw new AppException(RestaurantErrorCode.RESTAURANT_NOT_FOUND);
+    }
+
+    return new RestaurantDetailResponse(restaurant as any, lang);
   }
 }
