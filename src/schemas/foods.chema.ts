@@ -13,6 +13,10 @@ export class Food {
   @Prop({ type: MultiLanguage, required: true })
   dishName: MultiLanguage;
 
+  // Trong các file Schema tương ứng
+@Prop({ type: Types.ObjectId, ref: 'User', required: true })
+owner_id: Types.ObjectId;
+
   @Prop({ required: true, unique: true })
   slug: string;
 

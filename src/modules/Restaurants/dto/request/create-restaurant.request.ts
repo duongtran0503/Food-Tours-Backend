@@ -17,7 +17,7 @@ export class CreateRestaurantRequest {
   @Type(() => MultiLanguage)
   address: MultiLanguage;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     example: { vi: 'Bánh mì đặc sản với pate và bơ béo ngậy', en: 'Special banh mi with pate and butter' }
   })
   @IsObject()
@@ -25,12 +25,12 @@ export class CreateRestaurantRequest {
   @Type(() => MultiLanguage)
   description: MultiLanguage;
 
-  @ApiProperty({ example: { vi: '07:00 - 22:00', en: '7 AM - 10 PM' } })
+  @ApiPropertyOptional({ example: { vi: '07:00 - 22:00', en: '7 AM - 10 PM' } })
+  @IsOptional()
   @IsObject()
-  @IsNotEmpty()
   @ValidateNested()
   @Type(() => MultiLanguage)
-  openingHours: MultiLanguage;
+  openingHours?: MultiLanguage;
 
   @ApiProperty({ type: LocationDto })
   @IsObject()
@@ -39,10 +39,12 @@ export class CreateRestaurantRequest {
   @Type(() => LocationDto)
   location: LocationDto;
 
-  @ApiProperty({ example: '0905123456', description: 'Số điện thoại' })
-  @IsNotEmpty()
+  @ApiPropertyOptional({ example: '0905123456', description: 'Số điện thoại' })
+  @IsOptional()
   @IsString()
-  phoneNumber: string;
+  phoneNumber?: string;
+
+
 
   @ApiPropertyOptional({ example: ['https://cdn.com/restaurants/quan-thanh.png'] })
   @IsOptional()

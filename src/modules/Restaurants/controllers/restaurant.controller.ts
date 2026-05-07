@@ -24,9 +24,9 @@ export class RestaurantController {
   constructor(private readonly restaurantService: RestaurantService) { }
 
   @Post()
-  @Roles(UserRoles.ADMIN, UserRoles.STAFF)
+  @Roles(UserRoles.ADMIN, UserRoles.STAFF) // Đã fix lỗi chữ MERCHANT bằng chuỗi string
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Tạo quán ăn mới (Merchant/Admin)' })
+  @ApiOperation({ summary: 'Tạo quán ăn mới (Staff/Admin)' })
   @ApiResponse({ status: 201, description: 'Tạo thành công', type: RestaurantResponse })
   createRestaurant(
     @Body() data: CreateRestaurantRequest,
@@ -35,7 +35,17 @@ export class RestaurantController {
     const userId = req.user.userId;
     return this.restaurantService.createRestaurant(data, userId);
   }
-
+  @Get('staff/profile')
+  @Roles('staff') // Đã sửa lại chuẩn quyền 'staff'
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Lấy thông tin hồ sơ tổng hợp của Staff (Cá nhân + Cửa hàng)' })
+  async getStaffProfile(
+    @Req() req: any,
+    @Headers('lang') lang: string = 'vi'
+  ): Promise<any> {
+    const userId = req.user.userId; 
+    return this.restaurantService.getStaffProfile(userId, lang);
+  }
   @Patch(':id/approve')
   @Roles(UserRoles.ADMIN)
   @ApiBearerAuth()
@@ -49,6 +59,7 @@ export class RestaurantController {
       }
     }
   })
+
   approveRestaurant(
     @Param('id') id: string,
     @Body('status') status: 'approved' | 'rejected',
@@ -148,21 +159,5 @@ export class RestaurantController {
     @Headers('lang') lang: string = 'vi'
   ): Promise<RestaurantResponse> {
     return this.restaurantService.removeFoodsFromRestaurant(restaurantId, data, lang);
-  }
-
-  @Get('my-restaurant')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('merchant') 
-  async getMyRestaurant(
-    @Req() req: any,
-    @Headers('accept-language') lang: string = 'vi'
-  ) {
-    const userId = req.user.id || req.user._id; 
-    const data = await this.restaurantService.findMyRestaurant(userId, lang);
-    return {
-      statusCode: 200,
-      message: 'Lấy thông tin cửa hàng thành công',
-      data: data
-    };
   }
 }

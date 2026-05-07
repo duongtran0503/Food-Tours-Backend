@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Get, Param, Patch, Delete, UseGuards } from '@nestjs/common';
+import { Controller, Post, Body, Get, Param, Patch, Delete, UseGuards, Headers, Query } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { TourService } from '../services/tour.service';
 import { CreateTourRequest, UpdateTourRequest } from '../dto/tour.dto';
@@ -15,39 +15,39 @@ export class TourController {
   constructor(private readonly tourService: TourService) {}
 
   @Post()
-  @Roles(UserRoles.ADMIN, 'merchant') // Phân quyền
+  @Roles(UserRoles.ADMIN, 'STAFF') // Hoặc dùng UserRoles.STAFF nếu bạn đã định nghĩa STAFF trong enum UserRoles
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Tạo Tour mới (Admin/Merchant)' })
-  create(@Body() data: CreateTourRequest) {
-    return this.tourService.createTour(data);
+  @ApiOperation({ summary: 'Tạo Tour mới (Admin/Staff)' })
+  create(@Body() data: CreateTourRequest, @Headers('lang') lang: string) {
+    return this.tourService.createTour(data, lang); // Truyền lang xuống service
   }
 
-  @Public() // Mở cửa tự do
+  @Public()
   @Get()
-  @ApiOperation({ summary: 'Xem danh sách Tour (Công khai)' })
-  findAll() {
-    return this.tourService.findAllTours();
+  @ApiOperation({ summary: 'Xem danh sách Tour (Phân trang, Search)' })
+  findAll(@Query() query: any, @Headers('lang') lang: string = 'vi') {
+    return this.tourService.findAllTours(query, lang); // Truyền lang xuống
   }
 
-  @Public() // Mở cửa tự do
+  @Public()
   @Get(':id')
   @ApiOperation({ summary: 'Xem chi tiết 1 Tour' })
-  findOne(@Param('id') id: string) {
-    return this.tourService.findTourById(id);
+  findOne(@Param('id') id: string, @Headers('lang') lang: string = 'vi') {
+    return this.tourService.findTourById(id, lang);
   }
 
   @Patch(':id')
-  @Roles(UserRoles.ADMIN, 'merchant')
+  @Roles(UserRoles.ADMIN, 'STAFF')
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Sửa thông tin Tour (Admin/Merchant)' })
- update(@Param('id') id: string, @Body() data: UpdateTourRequest) { // <--- Đổi chữ ở đây
-    return this.tourService.updateTour(id, data);
+  @ApiOperation({ summary: 'Sửa thông tin Tour (Admin/Staff)' })
+  update(@Param('id') id: string, @Body() data: UpdateTourRequest, @Headers('lang') lang: string = 'vi') {
+    return this.tourService.updateTour(id, data, lang);
   }
 
   @Delete(':id')
-  @Roles(UserRoles.ADMIN, 'merchant')
+  @Roles(UserRoles.ADMIN, 'STAFF')
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Xóa Tour (Admin/Merchant)' })
+  @ApiOperation({ summary: 'Xóa Tour (Admin/Staff)' })
   remove(@Param('id') id: string) {
     return this.tourService.deleteTour(id);
   }
