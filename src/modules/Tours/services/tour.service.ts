@@ -6,10 +6,11 @@ import { CreateTourRequest } from '../dto/tour.dto';
 
 @Injectable()
 export class TourService {
-  constructor(@InjectModel(Tour.name) private tourModel: Model<TourDocument>) {}
+  constructor(@InjectModel(Tour.name) private tourModel: Model<TourDocument>) { }
 
   async createTour(data: CreateTourRequest) {
     const newTour = await this.tourModel.create(data);
+    console.log('Created Tour:', newTour);
     return { code: 'SUCCESS', message: 'Tạo tour thành công', data: newTour };
   }
 
