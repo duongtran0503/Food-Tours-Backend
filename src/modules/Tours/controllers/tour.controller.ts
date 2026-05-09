@@ -12,7 +12,7 @@ import { RolesGuard } from '@/common/guards/roles.guard';
 @Controller('tours')
 @UseGuards(JwtAuthGuard, RolesGuard) // Bật khiên bảo vệ
 export class TourController {
-  constructor(private readonly tourService: TourService) {}
+  constructor(private readonly tourService: TourService) { }
 
   @Post()
   @Roles(UserRoles.ADMIN, 'STAFF') // Hoặc dùng UserRoles.STAFF nếu bạn đã định nghĩa STAFF trong enum UserRoles
@@ -50,5 +50,15 @@ export class TourController {
   @ApiOperation({ summary: 'Xóa Tour (Admin/Staff)' })
   remove(@Param('id') id: string) {
     return this.tourService.deleteTour(id);
+  }
+
+  @Public()
+  @Get('/details/:id')
+  @ApiOperation({ summary: 'Lấy chi tiết Tour (Đa ngôn ngữ)' })
+  async getTourDetail(
+    @Param('id') id: string,
+    @Headers('lang') lang: string = 'vi' // Mặc định là tiếng Việt
+  ) {
+    return this.tourService.getTourDetail(id, lang);
   }
 }

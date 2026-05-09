@@ -5,6 +5,7 @@ import { Tour, TourDocument } from '@/schemas/tour.schema';
 import { Restaurant, RestaurantDocument } from '@/schemas/restaurant.schema'; // Import schema quán ăn
 import { CreateTourRequest, UpdateTourRequest } from '../dto/tour.dto';
 import { TourResponse } from '../dto/response/tour-response';
+import { TourDetailResponse } from '@/modules/Tours/dto/response/tour-detail.response';
 
 @Injectable()
 export class TourService {
@@ -89,5 +90,28 @@ export class TourService {
 
     await this.tourModel.findByIdAndDelete(id);
     return { code: 'SUCCESS', message: 'Xóa tour thành công' };
+  }
+
+
+  async getTourDetails(id: string, lang: string = 'vi') {
+    const tour = await this.tourModel.findById(id).populate('restaurants').lean().exec();
+    if (!tour) throw new NotFoundException('Không tìm thấy Tour');
+    return new TourResponse(tour, lang);
+  }
+
+
+  async getTourDetail(id: string, lang: string = 'vi'): Promise<TourDetailResponse> {
+    const tour = await this.tourModel
+      .findById(id)
+      .populate({
+        path: 'restaurants',
+      })
+      .exec();
+
+    if (!tour) {
+      throw new NotFoundException('Không tìm thấy Tour');
+    }
+
+    return new TourDetailResponse(tour, lang);
   }
 }
