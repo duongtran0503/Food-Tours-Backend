@@ -53,6 +53,15 @@ export class UpdateRestaurantRequest {
   @IsString({ each: true })
   images?: string[];
 
+  @ApiPropertyOptional({ 
+    example: { vi: 'https://cdn.com/vi.mp3', en: 'https://cdn.com/en.mp3', jp: 'https://cdn.com/jp.mp3' } 
+  })
+  @IsOptional()
+  @IsObject()
+  @ValidateNested()
+  @Type(() => MultiLanguage)
+  audioUrl?: MultiLanguage;
+
   @ApiPropertyOptional({ example: ['65fc34e45d4f3b0012abcd45'] })
   @IsOptional()
   @IsArray()

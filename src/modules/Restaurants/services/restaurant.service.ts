@@ -10,7 +10,7 @@ import { RestaurantResponse } from '@/modules/Restaurants/dto/response/restauran
 import { RestaurantRepository } from '@/modules/Restaurants/repositories/restaurant.repository';
 import { RestaurantDocument } from '@/schemas/restaurant.schema';
 import { Injectable } from '@nestjs/common';
-import { QueryFilter } from 'mongoose';
+import { QueryFilter, Types } from 'mongoose';
 import { UserRepository } from '@/modules/users/repositories/user.repository';
 import { UserErrorCode } from '@/modules/users/config/user.error.code';
 import { UserProfileResponse } from '@/modules/users/dto/response/user-profile-response';
@@ -55,9 +55,10 @@ async getStaffProfile(userId: string, lang: string = 'vi'): Promise<any> {
       openingHours: data.openingHours,
       description: data.description,
       images: data.images || [],
+      audioUrl: data.audioUrl || {},
       foods: data.foods ? data.foods.map((id) => id as any) : [],
-      owner_id: userId,          // Lấy ID của Staff đang đăng nhập
-      status: 'pending',         // Mặc định tạo ra là chờ duyệt
+      owner_id: new Types.ObjectId(userId),
+      status: 'pending',
     } as any);
 
     if (!newRestaurant) {
@@ -67,7 +68,6 @@ async getStaffProfile(userId: string, lang: string = 'vi'): Promise<any> {
     return new RestaurantResponse(newRestaurant as any, 'vi');
   }
 
-  // 2. Thêm hàm mới: Admin duyệt cửa hàng
   async approveRestaurant(id: string, status: 'approved' | 'rejected', lang: string = 'vi'): Promise<RestaurantResponse> {
     const restaurant = await this.restaurantRepository.findById(id);
     if (!restaurant) {
@@ -88,7 +88,6 @@ async getStaffProfile(userId: string, lang: string = 'vi'): Promise<any> {
 
     const filter: any = {};
 
-    // FIX: Search vào các trường con của MultiLanguage
     if (search) {
       filter.$or = [
         { 'name.vi': { $regex: search, $options: 'i' } },
@@ -105,7 +104,7 @@ async getStaffProfile(userId: string, lang: string = 'vi'): Promise<any> {
     const [restaurants, totalItems] = await Promise.all([
       restaurantModel
         .find(filter)
-        .sort({ 'name.vi': 1 }) // Sắp xếp theo tên tiếng Việt
+        .sort({ 'name.vi': 1 })
         .skip(skip)
         .limit(limit)
         .lean()
@@ -158,6 +157,7 @@ async getStaffProfile(userId: string, lang: string = 'vi'): Promise<any> {
     if (data.description) updateData.description = { ...restaurant.description, ...data.description };
     if (data.phoneNumber) updateData.phoneNumber = data.phoneNumber;
     if (data.images) updateData.images = data.images;
+    if (data.audioUrl) updateData.audioUrl = { ...restaurant.audioUrl, ...data.audioUrl };
     if (data.foods) updateData.foods = data.foods.map((id) => id as any);
 
     if (data.location) {
@@ -249,5 +249,29 @@ async getStaffProfile(userId: string, lang: string = 'vi'): Promise<any> {
     }
 
     return new RestaurantResponse(updatedRestaurant as any, lang);
+  }
+
+  async findMyRestaurant(userId: string, lang: string = 'vi'){
+    const restaurantModel = this.restaurantRepository.getModel();
+
+    const restaurant = await restaurantModel
+      .findOne({ 
+        $or: [
+          { owner_id: new Types.ObjectId(userId) },
+          { owner_id: userId }
+        ]
+      })
+      .populate('foods')
+      .lean()
+      .exec();
+
+    if (!restaurant) {
+      throw new AppException(RestaurantErrorCode.RESTAURANT_NOT_FOUND);
+    }
+    const { _id, ...rest } = restaurant;
+    return {
+       id: _id,
+       ...rest
+    };
   }
 }

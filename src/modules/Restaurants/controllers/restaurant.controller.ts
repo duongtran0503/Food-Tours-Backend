@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Get, Query, Param, Patch, Delete, Headers, Req, UseGuards } from '@nestjs/common';
+import { Controller, Post, Body, Get, Query, Param, Patch, Delete, Headers, Req, UseGuards, UnauthorizedException} from '@nestjs/common';
 import { UserRoles } from '@/schemas/user.schema';
 import { Roles } from '@/common/decorator/roles.decorator';
 import { RestaurantService } from '@/modules/Restaurants/services/restaurant.service';
@@ -24,7 +24,7 @@ export class RestaurantController {
   constructor(private readonly restaurantService: RestaurantService) { }
 
   @Post()
-  @Roles(UserRoles.ADMIN, UserRoles.STAFF) // Đã fix lỗi chữ MERCHANT bằng chuỗi string
+  @Roles(UserRoles.ADMIN, UserRoles.STAFF)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Tạo quán ăn mới (Staff/Admin)' })
   @ApiResponse({ status: 201, description: 'Tạo thành công', type: RestaurantResponse })
@@ -32,20 +32,23 @@ export class RestaurantController {
     @Body() data: CreateRestaurantRequest,
     @Req() req: any
   ): Promise<RestaurantResponse> {
-    const userId = req.user.userId;
+    const userId = req.user?.id || req.user?._id || req.user?.userId;
+    if (!userId) throw new UnauthorizedException('Không tìm thấy ID người dùng trong Token');
     return this.restaurantService.createRestaurant(data, userId);
   }
   @Get('staff/profile')
-  @Roles('staff') // Đã sửa lại chuẩn quyền 'staff'
+  @Roles(UserRoles.ADMIN, UserRoles.STAFF)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Lấy thông tin hồ sơ tổng hợp của Staff (Cá nhân + Cửa hàng)' })
   async getStaffProfile(
     @Req() req: any,
     @Headers('lang') lang: string = 'vi'
   ): Promise<any> {
-    const userId = req.user.userId; 
+    const userId = req.user?.id || req.user?._id || req.user?.userId; 
+    if (!userId) throw new UnauthorizedException('Không tìm thấy ID người dùng trong Token');
     return this.restaurantService.getStaffProfile(userId, lang);
   }
+
   @Patch(':id/approve')
   @Roles(UserRoles.ADMIN)
   @ApiBearerAuth()
@@ -97,6 +100,29 @@ export class RestaurantController {
     return this.restaurantService.findAllPublicRestaurants(query, lang);
   }
 
+  @Get('my-restaurant')
+  @Roles(UserRoles.ADMIN, UserRoles.STAFF)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Lấy thông tin quán ăn của tôi (Dành cho Merchant/Staff)' })
+  async getMyRestaurant(
+    @Req() req: any,
+    @Headers('lang') lang: string = 'vi'
+  ) {
+    const userId = req.user?.id || req.user?._id || req.user?.userId; 
+    
+    if (!userId) {
+      throw new UnauthorizedException('Không tìm thấy ID người dùng trong Token');
+    }
+
+    const data = await this.restaurantService.findMyRestaurant(userId, lang);
+    
+    return {
+      statusCode: 200,
+      message: 'Lấy thông tin cửa hàng thành công',
+      data: data
+    };
+  }
+
   @Public()
   @Get(':id')
   @ApiOperation({ summary: 'Xem chi tiết một quán ăn (Populate các món ăn)' })
@@ -110,7 +136,7 @@ export class RestaurantController {
   }
 
   @Patch(':id')
-  @Roles(UserRoles.ADMIN)
+  @Roles(UserRoles.ADMIN, UserRoles.STAFF)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Cập nhật thông tin quán ăn (Admin)' })
   @ApiResponse({ status: 200, description: 'Cập nhật thành công', type: RestaurantResponse })
@@ -136,9 +162,9 @@ export class RestaurantController {
   }
 
   @Post(':restaurantId/foods')
-  @Roles(UserRoles.ADMIN)
+  @Roles(UserRoles.ADMIN, UserRoles.STAFF)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Thêm hàng loạt món ăn liên kết vào quán ăn (Admin)' })
+  @ApiOperation({ summary: 'Thêm hàng loạt món ăn liên kết vào quán ăn' })
   @ApiResponse({ status: 201, description: 'Thêm thành công', type: RestaurantResponse })
   async addFoodsToRestaurant(
     @Param('restaurantId') restaurantId: string,
@@ -149,9 +175,9 @@ export class RestaurantController {
   }
 
   @Delete(':restaurantId/foods')
-  @Roles(UserRoles.ADMIN)
+  @Roles(UserRoles.ADMIN, UserRoles.STAFF)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Gỡ bỏ hàng loạt món ăn liên kết ra khỏi quán ăn (Admin)' })
+  @ApiOperation({ summary: 'Gỡ bỏ hàng loạt món ăn liên kết ra khỏi quán ăn' })
   @ApiResponse({ status: 200, description: 'Gỡ bỏ thành công', type: RestaurantResponse })
   async removeFoodsFromRestaurant(
     @Param('restaurantId') restaurantId: string,

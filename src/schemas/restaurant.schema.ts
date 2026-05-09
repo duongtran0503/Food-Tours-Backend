@@ -44,6 +44,9 @@ export class Restaurant {
   @Prop({ default: [] })
   images: string[];
 
+  @Prop({ type: MultiLanguage })
+  audioUrl: MultiLanguage;
+
   @Prop({ type: [{ type: Types.ObjectId, ref: 'Food' }], default: [] })
   foods: Types.ObjectId[];
 }
