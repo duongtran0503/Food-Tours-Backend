@@ -16,6 +16,7 @@ export class RestaurantResponse {
 
   @ApiProperty({ example: 'Quán Cao lầu Thanh' })
   name: string;
+  
   @ApiProperty({ example: 'Quán Cao lầu Thanh' })
   description: string;
 
@@ -37,20 +38,30 @@ export class RestaurantResponse {
   @ApiProperty({ example: ['https://cdn.com/res.png'] })
   images: string[];
 
+  @ApiProperty({ example: 'https://cdn.com/audio/loi-chao.mp3' })
+  audioUrl: string;
+
+  @ApiProperty()
+  audioUrlRaw: any;
+
   @ApiProperty({ example: ['65fc34e45d4f3b0012abcd45'] })
   foods: string[];
 
+  @ApiProperty({ example: 'approved' })
+  status: string;
+
   constructor(data: any, lang: string = 'vi') {
     this.id = data._id?.toString() || data.id;
-    this.name = data.name?.[lang] || '';
-    this.address = data.address?.[lang] || '';
+    this.name = (data.name as any)?.[lang] || (data.name as any)?.['vi'] || '';
+    this.address = (data.address as any)?.[lang] || (data.address as any)?.['vi'] || '';
+    this.description = data.description?.[lang] || data.description?.vi || '';
+    this.openingTime = data.openingHours?.[lang] || data.openingHours?.vi || '';
     this.location = data.location;
-    this.description = data.description?.[lang] || '';
     this.phoneNumber = data.phoneNumber || '';
-    this.rating = 5
-    this.reviews = 100
-    this.openingTime = data.openingHours?.[lang] || '';
     this.images = data.images || [];
+    this.audioUrl = data.audioUrl || '';
+    this.audioUrlRaw = data.audioUrl || {};
     this.foods = data.foods ? data.foods.map((food: string) => food.toString()) : [];
+    this.status = data.status || 'pending';
   }
 }
