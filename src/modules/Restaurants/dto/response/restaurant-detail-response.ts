@@ -9,11 +9,24 @@ export class RestaurantDetailResponse {
 
   @ApiProperty({ example: 'Quán Cao lầu Thanh' })
   name: string;
+  
   @ApiProperty({ example: 'Quán Cao lầu Thanh' })
   description: string;
 
   @ApiProperty({ example: '26 Thái Phiên, Minh An, Hội An' })
   address: string;
+
+  @ApiProperty({ example: '07:00 - 22:00' })
+  openTime: string;
+
+  @ApiProperty({ example: 'https://cdn.com/audio/loi-chao.mp3' })
+  audioUrl: string;
+
+  @ApiProperty() nameRaw: any;
+  @ApiProperty() descriptionRaw: any;
+  @ApiProperty() addressRaw: any;
+  @ApiProperty() openingHoursRaw: any;
+  @ApiProperty() audioUrlRaw: any;
 
   @ApiProperty({
     type: 'object',
@@ -27,9 +40,6 @@ export class RestaurantDetailResponse {
   reviews: string;
   rating: string;
 
-  @ApiProperty({ example: '07:00 - 22:00' })
-  openTime: string;
-
   @ApiProperty({ example: ['https://cdn.com/res.png'] })
   images: string[];
 
@@ -38,15 +48,22 @@ export class RestaurantDetailResponse {
 
   constructor(data: any, lang: string = 'vi') {
     this.id = data._id?.toString() || data.id;
-    this.name = data.name?.[lang] || '';
-    this.description = data.description?.[lang] || '';
-    this.address = data.address?.[lang] || '';
+    this.name = data.name?.[lang] || data.name?.vi || '';
+    this.description = data.description?.[lang] || data.description?.vi || '';
+    this.address = data.address?.[lang] || data.address?.vi || '';
+    this.openTime = data.openingHours?.[lang] || data.openingHours?.vi || '';
+    this.audioUrl = data.audioUrl?.[lang] || data.audioUrl?.vi || '';
+    this.nameRaw = data.name || {};
+    this.descriptionRaw = data.description || {};
+    this.addressRaw = data.address || {};
+    this.openingHoursRaw = data.openingHours || {};
+    this.audioUrlRaw = data.audioUrl || {};
     this.location = { lat: data.location?.lat || 0, lng: data.location?.lng || 0 };
     this.phone = data.phoneNumber || '';
-    this.openTime = data.openingHours?.[lang] || '';
     this.images = data.images || [];
-    this.reviews = "updating..."
-    this.rating = "updating..."
+    this.reviews = "updating...";
+    this.rating = "updating...";
+    
     this.menu = data.foods && data.foods.length > 0 && typeof data.foods[0] === 'object'
       ? data.foods.map((food: any) => new FoodResponse(food, lang))
       : [];
