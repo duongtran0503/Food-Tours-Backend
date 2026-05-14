@@ -22,6 +22,9 @@ export class RestaurantDetailResponse {
   @ApiProperty({ example: 'https://cdn.com/audio/loi-chao.mp3' })
   audioUrl: string;
 
+  @ApiProperty({ example: 'approved' })
+  status: string;
+
   @ApiProperty() nameRaw: any;
   @ApiProperty() descriptionRaw: any;
   @ApiProperty() addressRaw: any;
@@ -63,6 +66,7 @@ export class RestaurantDetailResponse {
     this.images = data.images || [];
     this.reviews = "updating...";
     this.rating = "updating...";
+    this.status = data.status || 'pending';
     
     this.menu = data.foods && data.foods.length > 0 && typeof data.foods[0] === 'object'
       ? data.foods.map((food: any) => new FoodResponse(food, lang))
