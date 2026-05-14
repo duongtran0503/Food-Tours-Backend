@@ -9,6 +9,7 @@ import { UsersModule } from '@/modules/users/user.module';
 import { Logger, Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
+import { EventsModule } from '@/modules/events/events.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { MongooseModule } from '@nestjs/mongoose';
     FoodModule,
     RestaurantModule,
     TourModule,
+    EventsModule,
     ConfigModule.forRoot({
       isGlobal: true,
     }),
@@ -50,6 +52,5 @@ import { MongooseModule } from '@nestjs/mongoose';
     })
   ],
   controllers: [HelloController],
-  providers: [],
 })
 export class AppModule { }

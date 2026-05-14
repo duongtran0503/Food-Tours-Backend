@@ -251,7 +251,7 @@ async getStaffProfile(userId: string, lang: string = 'vi'): Promise<any> {
     return new RestaurantResponse(updatedRestaurant as any, lang);
   }
 
-  async findMyRestaurant(userId: string, lang: string = 'vi'){
+  async findMyRestaurant(userId: string, lang: string = 'vi'): Promise<RestaurantDetailResponse> {
     const restaurantModel = this.restaurantRepository.getModel();
 
     const restaurant = await restaurantModel
@@ -268,10 +268,8 @@ async getStaffProfile(userId: string, lang: string = 'vi'): Promise<any> {
     if (!restaurant) {
       throw new AppException(RestaurantErrorCode.RESTAURANT_NOT_FOUND);
     }
-    const { _id, ...rest } = restaurant;
-    return {
-       id: _id,
-       ...rest
-    };
+
+    // FIX: Sử dụng DTO để dữ liệu có đầy đủ các trường 'Raw' cho Frontend
+    return new RestaurantDetailResponse(restaurant as any, lang);
   }
 }
