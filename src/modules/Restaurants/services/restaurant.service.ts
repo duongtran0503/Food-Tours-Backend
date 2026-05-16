@@ -18,26 +18,26 @@ import { UserProfileResponse } from '@/modules/users/dto/response/user-profile-r
 @Injectable()
 export class RestaurantService {
   constructor(
-  private readonly restaurantRepository: RestaurantRepository,
-  private readonly userRepository: UserRepository, // Tiêm thêm UserRepository
-) { }
-async getStaffProfile(userId: string, lang: string = 'vi'): Promise<any> {
-  // Lấy thông tin cá nhân (User)
-  const user = await this.userRepository.findById(userId);
-  if (!user) {
-    throw new AppException(UserErrorCode.USER_NOT_FOUND);
+    private readonly restaurantRepository: RestaurantRepository,
+    private readonly userRepository: UserRepository, // Tiêm thêm UserRepository
+  ) { }
+  async getStaffProfile(userId: string, lang: string = 'vi'): Promise<any> {
+    // Lấy thông tin cá nhân (User)
+    const user = await this.userRepository.findById(userId);
+    if (!user) {
+      throw new AppException(UserErrorCode.USER_NOT_FOUND);
+    }
+
+    // Lấy thông tin cửa hàng dựa trên owner_id
+    const restaurant = await this.restaurantRepository.findOne({
+      owner_id: userId as any
+    });
+
+    return {
+      user: new UserProfileResponse(user), // Trả về thông tin cá nhân
+      restaurant: restaurant ? new RestaurantResponse(restaurant, lang) : null, // Trả về thông tin quán (nếu có)
+    };
   }
-
-  // Lấy thông tin cửa hàng dựa trên owner_id
-  const restaurant = await this.restaurantRepository.findOne({ 
-    owner_id: userId as any 
-  });
-
-  return {
-    user: new UserProfileResponse(user), // Trả về thông tin cá nhân
-    restaurant: restaurant ? new RestaurantResponse(restaurant, lang) : null, // Trả về thông tin quán (nếu có)
-  };
-}
   async createRestaurant(data: CreateRestaurantRequest, userId: string): Promise<RestaurantResponse> {
     const existingRestaurant = await this.restaurantRepository.findOne({
       phoneNumber: data.phoneNumber,
@@ -90,10 +90,14 @@ async getStaffProfile(userId: string, lang: string = 'vi'): Promise<any> {
 
     if (search) {
       filter.$or = [
-        { 'name.vi': { $regex: search, $options: 'i' } },
-        { 'name.en': { $regex: search, $options: 'i' } },
+        { [`name.${lang}`]: { $regex: search, $options: 'i' } },
+        { [`description.${lang}`]: { $regex: search, $options: 'i' } },
+        { [`address.${lang}`]: { $regex: search, $options: 'i' } }
+
       ];
+
     }
+
 
     if (foodId) {
       filter.foods = foodId as any;
